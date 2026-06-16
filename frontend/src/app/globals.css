@@ -1,0 +1,148 @@
+@import "tailwindcss";
+
+:root {
+  --background: #edf7ff;
+  --foreground: #071126;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+::selection {
+  background: rgba(239, 68, 68, 0.2);
+  color: #071126;
+}
+
+.edupath-shell {
+  position: relative;
+  isolation: isolate;
+  background:
+    linear-gradient(125deg, rgba(239, 68, 68, 0.14), transparent 28%),
+    linear-gradient(235deg, rgba(34, 197, 94, 0.15), transparent 31%),
+    linear-gradient(180deg, #eaf5ff 0%, #f4fbef 48%, #fff7df 100%);
+}
+
+.grid-sheen {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(59, 130, 246, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59, 130, 246, 0.08) 1px, transparent 1px);
+  background-size: 46px 46px;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.55), transparent 86%);
+  opacity: 0.55;
+  animation: grid-drift 26s linear infinite;
+}
+
+.learning-band {
+  position: absolute;
+  left: -12vw;
+  width: 124vw;
+  height: 17rem;
+  border-radius: 8px;
+  filter: blur(18px);
+  opacity: 0.48;
+  transform: rotate(-8deg);
+  animation: ribbon-float 18s ease-in-out infinite;
+}
+
+.learning-band-one {
+  top: 5rem;
+  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.34), rgba(250, 204, 21, 0.24), transparent);
+}
+
+.learning-band-two {
+  top: 25rem;
+  animation-delay: -6s;
+  background: linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.28), rgba(239, 68, 68, 0.2), transparent);
+}
+
+.learning-band-three {
+  bottom: 8rem;
+  animation-delay: -11s;
+  background: linear-gradient(90deg, transparent, rgba(239, 68, 68, 0.18), rgba(59, 130, 246, 0.22), transparent);
+}
+
+.learning-particle {
+  position: absolute;
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: #3b82f6;
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.24);
+  animation: particle-drift 9s ease-in-out infinite;
+}
+
+.particle-1 { left: 8%; top: 18%; background: #ef4444; animation-delay: -1s; }
+.particle-2 { left: 18%; top: 48%; background: #facc15; animation-delay: -7s; }
+.particle-3 { left: 27%; top: 22%; background: #22c55e; animation-delay: -3s; }
+.particle-4 { left: 39%; top: 62%; background: #3b82f6; animation-delay: -5s; }
+.particle-5 { left: 48%; top: 14%; background: #ef4444; animation-delay: -2s; }
+.particle-6 { left: 58%; top: 39%; background: #facc15; animation-delay: -4s; }
+.particle-7 { left: 66%; top: 19%; background: #22c55e; animation-delay: -6s; }
+.particle-8 { left: 76%; top: 54%; background: #3b82f6; animation-delay: -1.5s; }
+.particle-9 { left: 88%; top: 26%; background: #ef4444; animation-delay: -4.5s; }
+.particle-10 { left: 94%; top: 69%; background: #facc15; animation-delay: -8s; }
+.particle-11 { left: 12%; top: 78%; background: #22c55e; animation-delay: -6.5s; }
+.particle-12 { left: 31%; top: 84%; background: #3b82f6; animation-delay: -2.5s; }
+.particle-13 { left: 44%; top: 33%; background: #facc15; animation-delay: -8.5s; }
+.particle-14 { left: 54%; top: 75%; background: #ef4444; animation-delay: -3.5s; }
+.particle-15 { left: 71%; top: 82%; background: #22c55e; animation-delay: -5.5s; }
+.particle-16 { left: 83%; top: 13%; background: #3b82f6; animation-delay: -7.5s; }
+.particle-17 { left: 6%; top: 57%; background: #facc15; animation-delay: -4.2s; }
+.particle-18 { left: 97%; top: 42%; background: #22c55e; animation-delay: -2.2s; }
+
+@keyframes grid-drift {
+  0% {
+    background-position: 0 0, 0 0;
+  }
+  100% {
+    background-position: 46px 46px, 46px 46px;
+  }
+}
+
+@keyframes ribbon-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(-8deg);
+  }
+  50% {
+    transform: translate3d(3vw, -1.2rem, 0) rotate(-6deg);
+  }
+}
+
+@keyframes particle-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+    opacity: 0.36;
+  }
+  50% {
+    transform: translate3d(14px, -22px, 0) rotate(16deg);
+    opacity: 0.82;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}

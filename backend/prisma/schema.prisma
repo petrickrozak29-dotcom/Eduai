@@ -1,0 +1,236 @@
+// Prisma schema for EduPath-AI
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  SISWA
+  GURU
+  DEVELOPER
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(SISWA)
+  nip       String?  @unique
+  nis       String?  @unique
+  kelas     String?
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  teacher   Teacher?
+  student   Student?
+  developer Developer?
+  forums    Forum[]
+  forumReplies ForumReply[]
+  events    Event[]
+  systemLogs SystemLog[]
+}
+
+model Teacher {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  nip         String   @unique
+  mataPelajaran String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subjects Subject[] @relation("TeacherSubjects")
+}
+
+model Student {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  nis       String   @unique
+  kelas     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  learningProfile LearningProfile?
+  results         Result[]
+}
+
+model Developer {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Subject {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  kelas       String?
+  teacherId   String?
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  teacher   Teacher?          @relation("TeacherSubjects", fields: [teacherId], references: [id])
+  chapters  Chapter[]
+  materials Material[]
+  quizzes   Quiz[]
+  forums    Forum[]
+}
+
+model Chapter {
+  id        String   @id @default(uuid())
+  subjectId String
+  title     String
+  order     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  subject   Subject     @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  materials Material[]
+  quizzes   Quiz[]
+}
+
+model Material {
+  id          String   @id @default(uuid())
+  subjectId   String
+  chapterId   String?
+  title       String
+  content     String   @db.Text
+  contentType String   @default("text") // text, video, image, pdf
+  imageUrl    String?
+  profilA     String?  @db.Text
+  profilB     String?  @db.Text
+  profilC     String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  subject Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  chapter Chapter? @relation(fields: [chapterId], references: [id])
+}
+
+model Quiz {
+  id        String   @id @default(uuid())
+  chapterId String?
+  subjectId String
+  title     String
+  type      String   @default("bab") // bab, final, pretest
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  chapter   Chapter?  @relation(fields: [chapterId], references: [id])
+  subject   Subject   @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  questions Question[]
+  results   Result[]
+}
+
+model Question {
+  id        String   @id @default(uuid())
+  quizId    String
+  text      String   @db.Text
+  options   Json
+  correctAnswer String
+  points    Int      @default(10)
+  createdAt DateTime @default(now())
+
+  quiz    Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  answers Answer[]
+}
+
+model Answer {
+  id         String   @id @default(uuid())
+  questionId String
+  resultId   String
+  answer     String
+  isCorrect  Boolean
+  createdAt  DateTime @default(now())
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  result   Result   @relation(fields: [resultId], references: [id], onDelete: Cascade)
+}
+
+model Result {
+  id          String   @id @default(uuid())
+  studentId   String
+  quizId      String
+  score       Int
+  totalPoints Int
+  percentage  Float
+  answers     Answer[]
+  createdAt   DateTime @default(now())
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  quiz    Quiz    @relation(fields: [quizId], references: [id], onDelete: Cascade)
+}
+
+model LearningProfile {
+  id             String   @id @default(uuid())
+  studentId      String   @unique
+  learningStyle  String?  // visual, auditori, kinestetik
+  cognitiveLevel String?  // tinggi, sedang, rendah
+  pretestScore   Int?
+  learningIndex  Float?   @default(0)
+  recommendations Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+}
+
+model Forum {
+  id        String   @id @default(uuid())
+  subjectId String?
+  userId    String
+  title     String
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject  Subject?     @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  replies  ForumReply[]
+}
+
+model ForumReply {
+  id        String   @id @default(uuid())
+  forumId   String
+  userId    String
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  forum Forum @relation(fields: [forumId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Event {
+  id          String   @id @default(uuid())
+  title       String
+  description String?  @db.Text
+  date        DateTime
+  type        String   @default("academic") // academic, extracurricular
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model SystemLog {
+  id        String   @id @default(uuid())
+  action    String
+  userId    String?
+  details   Json?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+}
