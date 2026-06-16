@@ -94,7 +94,6 @@ export const getById = async (req, res) => {
             sendError(res, "Result not found", 404);
             return;
         }
-        // Add correct count to response
         const enrichedResult = {
             ...result,
             correctCount: result.answers.filter((a) => a.isCorrect).length,

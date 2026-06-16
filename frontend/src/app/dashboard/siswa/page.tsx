@@ -5,7 +5,6 @@ import { useAuth } from "@/context/AuthContext";
 import { getMockLearningPaths } from "@/lib/api";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { type SVGProps } from "react";
 
 export default function SiswaDashboard() {
   const { user } = useAuth();

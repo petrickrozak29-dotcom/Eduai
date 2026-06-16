@@ -2,7 +2,6 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import type { SignOptions } from "jsonwebtoken";
 import { JwtPayload } from "../types/index.js";
-import { Role } from "../generated/prisma/client.js";
 
 const JWT_SECRET = process.env.JWT_SECRET || "edupath-ai-secret-key-2026";
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
@@ -42,7 +41,7 @@ export function authenticate(req: AuthRequestType, res: Response, next: NextFunc
   }
 }
 
-export function authorize(...roles: Role[]) {
+export function authorize(...roles: string[]) {
   return (req: AuthRequestType, res: Response, next: NextFunction): void => {
     if (!req.user) {
       res.status(401).json({ success: false, message: "Unauthorized" });

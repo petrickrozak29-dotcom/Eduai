@@ -2,6 +2,7 @@ import { Response } from "express";
 import prisma from "../config/database.js";
 import { AuthRequestType } from "../middleware/auth.js";
 import { sendSuccess, sendError } from "../utils/response.js";
+import type { Answer } from "@prisma/client";
 
 export const getStudentResults = async (req: AuthRequestType, res: Response): Promise<void> => {
   try {
@@ -35,9 +36,9 @@ export const getStudentResults = async (req: AuthRequestType, res: Response): Pr
       orderBy: { createdAt: "desc" },
     });
 
-    const resultsWithCorrectCount = results.map((result) => ({
+    const resultsWithCorrectCount = results.map((result: { answers: Pick<Answer, "isCorrect">[] }) => ({
       ...result,
-      correctCount: result.answers?.filter((a) => a.isCorrect).length ?? 0,
+      correctCount: result.answers?.filter((a: Pick<Answer, "isCorrect">) => a.isCorrect).length ?? 0,
     }));
 
     sendSuccess(res, resultsWithCorrectCount, "Student results retrieved successfully");
@@ -103,11 +104,10 @@ export const getById = async (req: AuthRequestType, res: Response): Promise<void
       return;
     }
 
-    // Add correct count to response
     const enrichedResult = {
       ...result,
-      correctCount: result.answers.filter((a) => a.isCorrect).length,
-      incorrectCount: result.answers.filter((a) => !a.isCorrect).length,
+      correctCount: result.answers.filter((a: Answer) => a.isCorrect).length,
+      incorrectCount: result.answers.filter((a: Answer) => !a.isCorrect).length,
     };
 
     sendSuccess(res, enrichedResult, "Result retrieved successfully");

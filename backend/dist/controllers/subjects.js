@@ -6,9 +6,9 @@ export const subjectController = {
             const { kelas, teacherId } = req.query;
             const where = {};
             if (kelas)
-                where.kelas = kelas;
+                where.kelas = String(kelas);
             if (teacherId)
-                where.teacherId = teacherId;
+                where.teacherId = String(teacherId);
             const subjects = await prisma.subject.findMany({
                 where,
                 include: {

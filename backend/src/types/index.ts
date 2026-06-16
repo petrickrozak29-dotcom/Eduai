@@ -1,8 +1,6 @@
-import { Role } from "../generated/prisma/client.js";
-
 export interface JwtPayload {
   userId: string;
-  role: Role;
+  role: string;
   email: string;
 }
 
@@ -15,7 +13,7 @@ export interface RegisterRequest {
   email: string;
   password: string;
   name: string;
-  role: Role;
+  role: string;
   nip?: string;
   nis?: string;
   kelas?: string;

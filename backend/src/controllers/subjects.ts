@@ -8,9 +8,9 @@ export const subjectController = {
     try {
       const { kelas, teacherId } = req.query;
 
-      const where: Record<string, unknown> = {};
-      if (kelas) where.kelas = kelas;
-      if (teacherId) where.teacherId = teacherId;
+      const where: any = {};
+      if (kelas) where.kelas = String(kelas);
+      if (teacherId) where.teacherId = String(teacherId);
 
       const subjects = await prisma.subject.findMany({
         where,

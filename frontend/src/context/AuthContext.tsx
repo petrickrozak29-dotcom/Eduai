@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
 
 interface User {
   id: string;
@@ -59,24 +59,22 @@ const MOCK_USERS: Record<string, { email: string; password: string; name: string
 };
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const savedToken = localStorage.getItem("edupath_token");
-    const savedUser = localStorage.getItem("edupath_user");
-    if (savedToken && savedUser) {
-      try {
-        setToken(savedToken);
-        setUser(JSON.parse(savedUser));
-      } catch {
-        localStorage.removeItem("edupath_token");
-        localStorage.removeItem("edupath_user");
+  const [user, setUser] = useState<User | null>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("edupath_user");
+      if (saved) {
+        try { return JSON.parse(saved); } catch { localStorage.removeItem("edupath_user"); }
       }
     }
-    setIsLoading(false);
-  }, []);
+    return null;
+  });
+  const [token, setToken] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("edupath_token");
+    }
+    return null;
+  });
+  const [isLoading] = useState(false);
 
   const login = useCallback(async (email: string, password: string) => {
     // Check mock users first (including developer)

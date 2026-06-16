@@ -1,0 +1,18 @@
+{
+  "name": "edupath-ai",
+  "version": "1.0.0",
+  "private": true,
+  "description": "EduPath AI - Adaptive Learning Platform untuk SMA",
+  "scripts": {
+    "install:all": "cd frontend && npm install && cd ../backend && npm install",
+    "dev": "concurrently \"cd backend && npm run dev\" \"cd frontend && npm run dev\"",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && npm run dev",
+    "build": "cd frontend && npm run build && cd ../backend && npm run build",
+    "db:setup": "cd backend && npx prisma generate && npx prisma db push",
+    "db:seed": "cd backend && npx ts-node --esm src/seed.ts",
+    "setup": "npm run install:all && npm run db:setup"
+  },
+  "keywords": ["edupath", "ai", "pembelajaran", "adaptif", "sma"],
+  "license": "ISC"
+}

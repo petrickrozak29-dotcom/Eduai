@@ -2,7 +2,6 @@ import bcrypt from "bcrypt";
 import prisma from "../config/database.js";
 import { generateToken } from "../middleware/auth.js";
 import { sendError, sendSuccess } from "../utils/response.js";
-import { Role } from "../generated/prisma/client.js";
 const safeUserSelect = {
     id: true,
     email: true,
@@ -22,10 +21,10 @@ const safeUserSelect = {
     developer: true,
 };
 function parseRole(role) {
-    if (role === Role.GURU || role === Role.DEVELOPER || role === Role.SISWA) {
+    const validRoles = ["SISWA", "GURU", "DEVELOPER"];
+    if (role && validRoles.includes(role))
         return role;
-    }
-    return Role.SISWA;
+    return "SISWA";
 }
 export const register = async (req, res) => {
     try {
@@ -44,47 +43,49 @@ export const register = async (req, res) => {
         const generatedIdentity = `${parsedRole}-${Date.now()}`;
         const teacherNip = nip || generatedIdentity;
         const studentNis = nis || generatedIdentity;
+        const userData = {
+            email,
+            password: hashedPassword,
+            name,
+            role: parsedRole,
+            avatar: avatar || null,
+            nip: parsedRole === "GURU" ? teacherNip : null,
+            nis: parsedRole === "SISWA" ? studentNis : null,
+            kelas: parsedRole === "SISWA" ? kelas || null : null,
+        };
+        // Add teacher/student/developer relations
+        if (parsedRole === "GURU") {
+            userData.teacher = {
+                create: {
+                    nip: teacherNip,
+                    mataPelajaran: mataPelajaran || null,
+                },
+            };
+        }
+        else if (parsedRole === "SISWA") {
+            userData.student = {
+                create: {
+                    nis: studentNis,
+                    kelas: kelas || null,
+                    learningProfile: {
+                        create: {
+                            learningStyle: null,
+                            cognitiveLevel: null,
+                            pretestScore: null,
+                            learningIndex: 0,
+                            recommendations: [],
+                        },
+                    },
+                },
+            };
+        }
+        else if (parsedRole === "DEVELOPER") {
+            userData.developer = {
+                create: {},
+            };
+        }
         const user = await prisma.user.create({
-            data: {
-                email,
-                password: hashedPassword,
-                name,
-                role: parsedRole,
-                avatar: avatar || null,
-                nip: parsedRole === Role.GURU ? teacherNip : null,
-                nis: parsedRole === Role.SISWA ? studentNis : null,
-                kelas: parsedRole === Role.SISWA ? kelas || null : null,
-                ...(parsedRole === Role.GURU && {
-                    teacher: {
-                        create: {
-                            nip: teacherNip,
-                            mataPelajaran: mataPelajaran || null,
-                        },
-                    },
-                }),
-                ...(parsedRole === Role.SISWA && {
-                    student: {
-                        create: {
-                            nis: studentNis,
-                            kelas: kelas || null,
-                            learningProfile: {
-                                create: {
-                                    learningStyle: null,
-                                    cognitiveLevel: null,
-                                    pretestScore: null,
-                                    learningIndex: 0,
-                                    recommendations: [],
-                                },
-                            },
-                        },
-                    },
-                }),
-                ...(parsedRole === Role.DEVELOPER && {
-                    developer: {
-                        create: {},
-                    },
-                }),
-            },
+            data: userData,
             select: safeUserSelect,
         });
         const token = generateToken({ userId: user.id, email: user.email, role: user.role });

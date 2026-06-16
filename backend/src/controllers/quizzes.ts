@@ -7,7 +7,7 @@ export const getAll = async (req: AuthRequestType, res: Response): Promise<void>
   try {
     const { subjectId, chapterId, type } = req.query;
 
-    const where: Record<string, unknown> = {};
+    const where: any = {};
     if (subjectId) where.subjectId = subjectId as string;
     if (chapterId) where.chapterId = chapterId as string;
     if (type) where.type = type as string;

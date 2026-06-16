@@ -1,9 +1,6 @@
 "use client";
 
 import DashboardShell from "@/components/layout/DashboardShell";
-import { motion } from "framer-motion";
-import Link from "next/link";
-import { SVGProps } from "react";
 
 export default function DeveloperAnalyticsPage() {
   const metrics = [

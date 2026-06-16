@@ -8,7 +8,7 @@ export const materialController = {
     try {
       const { subjectId, chapterId } = req.query;
 
-      const where: Record<string, unknown> = {};
+      const where: any = {};
       if (subjectId) where.subjectId = subjectId;
       if (chapterId) where.chapterId = chapterId;
 

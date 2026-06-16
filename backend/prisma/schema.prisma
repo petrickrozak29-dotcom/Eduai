@@ -1,11 +1,10 @@
 // Prisma schema for EduPath-AI
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
 }
 
 enum Role {
@@ -105,12 +104,12 @@ model Material {
   subjectId   String
   chapterId   String?
   title       String
-  content     String   @db.Text
-  contentType String   @default("text") // text, video, image, pdf
+  content     String   @default("")
+  contentType String   @default("text")
   imageUrl    String?
-  profilA     String?  @db.Text
-  profilB     String?  @db.Text
-  profilC     String?  @db.Text
+  profilA     String?  @default("")
+  profilB     String?  @default("")
+  profilC     String?  @default("")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -123,7 +122,7 @@ model Quiz {
   chapterId String?
   subjectId String
   title     String
-  type      String   @default("bab") // bab, final, pretest
+  type      String   @default("bab")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -136,9 +135,9 @@ model Quiz {
 model Question {
   id        String   @id @default(uuid())
   quizId    String
-  text      String   @db.Text
-  options   Json
-  correctAnswer String
+  text      String   @default("")
+  options   Json     @default("{}")
+  correctAnswer String @default("A")
   points    Int      @default(10)
   createdAt DateTime @default(now())
 
@@ -150,8 +149,8 @@ model Answer {
   id         String   @id @default(uuid())
   questionId String
   resultId   String
-  answer     String
-  isCorrect  Boolean
+  answer     String   @default("")
+  isCorrect  Boolean  @default(false)
   createdAt  DateTime @default(now())
 
   question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
@@ -162,21 +161,21 @@ model Result {
   id          String   @id @default(uuid())
   studentId   String
   quizId      String
-  score       Int
-  totalPoints Int
-  percentage  Float
-  answers     Answer[]
+  score       Int      @default(0)
+  totalPoints Int      @default(0)
+  percentage  Float    @default(0)
   createdAt   DateTime @default(now())
 
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
   quiz    Quiz    @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  answers Answer[]
 }
 
 model LearningProfile {
   id             String   @id @default(uuid())
   studentId      String   @unique
-  learningStyle  String?  // visual, auditori, kinestetik
-  cognitiveLevel String?  // tinggi, sedang, rendah
+  learningStyle  String?
+  cognitiveLevel String?
   pretestScore   Int?
   learningIndex  Float?   @default(0)
   recommendations Json?
@@ -191,7 +190,7 @@ model Forum {
   subjectId String?
   userId    String
   title     String
-  content   String   @db.Text
+  content   String   @default("")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -204,7 +203,7 @@ model ForumReply {
   id        String   @id @default(uuid())
   forumId   String
   userId    String
-  content   String   @db.Text
+  content   String   @default("")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -215,9 +214,9 @@ model ForumReply {
 model Event {
   id          String   @id @default(uuid())
   title       String
-  description String?  @db.Text
-  date        DateTime
-  type        String   @default("academic") // academic, extracurricular
+  description String?  @default("")
+  date        DateTime @default(now())
+  type        String   @default("academic")
   userId      String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -227,7 +226,7 @@ model Event {
 
 model SystemLog {
   id        String   @id @default(uuid())
-  action    String
+  action    String   @default("")
   userId    String?
   details   Json?
   createdAt DateTime @default(now())
