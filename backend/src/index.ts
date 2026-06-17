@@ -21,9 +21,13 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "http://localhost:3000",
+  origin: [
+    "http://localhost:3000",
+    "https://eduai-2akm-mq6xm3ajq-petrickrozak29-dotcoms-projects.vercel.app"
+  ],
   credentials: true,
 }));
+
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
