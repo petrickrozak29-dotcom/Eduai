@@ -196,6 +196,7 @@ export const me = async (req: AuthRequestType, res: Response): Promise<void> => 
 
     sendSuccess(res, user, "Profil berhasil diambil");
   } catch (error) {
+    console.error("LOGIN ERROR:", error);
     sendError(res, "Gagal mengambil profil", 500, (error as Error).message);
   }
 };
