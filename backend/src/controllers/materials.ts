@@ -110,7 +110,7 @@ export const materialController = {
   async update(req: AuthRequestType, res: Response): Promise<void> {
     try {
       const id = String(req.params.id);
-      const { subjectId, chapterId, title, content, contentType, imageUrl, profilA, profilB, profilC } = req.body;
+      const { subjectId, chapterId, title, content, contentType, imageUrl, fileUrl, level, isPublished } = req.body;
 
       const existing = await prisma.material.findUnique({ where: { id } });
       if (!existing) {
@@ -127,9 +127,9 @@ export const materialController = {
           ...(content !== undefined && { content }),
           ...(contentType !== undefined && { contentType }),
           ...(imageUrl !== undefined && { imageUrl }),
-          ...(profilA !== undefined && { profilA }),
-          ...(profilB !== undefined && { profilB }),
-          ...(profilC !== undefined && { profilC }),
+          ...(fileUrl !== undefined && { fileUrl }),
+          ...(level !== undefined && { level }),
+          ...(isPublished !== undefined && { isPublished }),
         },
         include: {
           subject: {

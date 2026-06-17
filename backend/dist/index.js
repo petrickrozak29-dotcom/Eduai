@@ -14,6 +14,7 @@ import eventRoutes from "./routes/events.js";
 import analyticsRoutes from "./routes/analytics.js";
 import developerRoutes from "./routes/developer.js";
 import systemRoutes from "./routes/system.js";
+import classRoutes from "./routes/classes.js";
 const app = express();
 const PORT = process.env.PORT || 5000;
 // Middleware
@@ -37,6 +38,7 @@ app.use("/api/events", eventRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/developer", developerRoutes);
 app.use("/api/system", systemRoutes);
+app.use("/api/classes", classRoutes);
 // Health check
 app.get("/api/health", (_req, res) => {
     res.json({ success: true, message: "EduPath-AI API is running", timestamp: new Date().toISOString() });

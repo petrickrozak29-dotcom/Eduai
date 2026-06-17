@@ -8,12 +8,6 @@ interface User {
   name: string;
   role: "SISWA" | "GURU" | "DEVELOPER";
   avatar?: string | null;
-  nis?: string | null;
-  nip?: string | null;
-  kelas?: string | null;
-  student?: { id: string; nis: string; kelas: string } | null;
-  teacher?: { id: string; nip: string; mataPelajaran: string } | null;
-  developer?: { id: string } | null;
 }
 
 interface AuthContextType {
@@ -32,31 +26,28 @@ interface RegisterData {
   name: string;
   role?: string;
   nis?: string;
+  nip?: string;
+  mataPelajaran?: string;
   kelas?: string;
+  avatar?: string;
+  tempatLahir?: string;
+  tanggalLahir?: string;
+  jenisKelamin?: string;
+  agama?: string;
+  alamat?: string;
+  noHP?: string;
+  pendidikanTerakhir?: string;
+  perguruanTinggi?: string;
+  programStudi?: string;
+  tahunLulus?: string;
+  nuptk?: string;
+  statusKepegawaian?: string;
+  instansi?: string;
 }
 
-const AuthContext = createContext<AuthContextType | null>(null);
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
-const MOCK_USERS: Record<string, { email: string; password: string; name: string; role: "SISWA" | "GURU" | "DEVELOPER" }> = {
-  "edupathai@gmail.com": {
-    email: "edupathai@gmail.com",
-    password: "magelangeduai45#",
-    name: "Developer EduPath",
-    role: "DEVELOPER",
-  },
-  "guru@demo.com": {
-    email: "guru@demo.com",
-    password: "guru123",
-    name: "Budi Guru",
-    role: "GURU",
-  },
-  "siswa@demo.com": {
-    email: "siswa@demo.com",
-    password: "siswa123",
-    name: "Ani Siswa",
-    role: "SISWA",
-  },
-};
+const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(() => {
@@ -69,68 +60,67 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return null;
   });
   const [token, setToken] = useState<string | null>(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("edupath_token");
-    }
+    if (typeof window !== "undefined") return localStorage.getItem("edupath_token");
     return null;
   });
   const [isLoading] = useState(false);
 
   const login = useCallback(async (email: string, password: string) => {
-    // Check mock users first (including developer)
-    const mockUser = MOCK_USERS[email];
-    if (mockUser && mockUser.password === password) {
-      const userData: User = {
-        id: email === "edupathai@gmail.com" ? "dev-1" : email.includes("guru") ? "guru-1" : "siswa-1",
-        email: mockUser.email,
-        name: mockUser.name,
-        role: mockUser.role,
-        ...(mockUser.role === "SISWA" ? { student: { id: "s-1", nis: "12345", kelas: "X IPA 1" } } : {}),
-        ...(mockUser.role === "GURU" ? { teacher: { id: "t-1", nip: "19800101", mataPelajaran: "Biologi" } } : {}),
-        ...(mockUser.role === "DEVELOPER" ? { developer: { id: "dev-1" } } : {}),
-      };
-      const newToken = `token-${Date.now()}`;
-      setUser(userData);
-      setToken(newToken);
-      localStorage.setItem("edupath_token", newToken);
-      localStorage.setItem("edupath_user", JSON.stringify(userData));
-      return { success: true, role: userData.role };
+    try {
+      const res = await fetch(`${API_URL}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const result = await res.json();
+      if (result.success && result.data) {
+        const userData: User = {
+          id: result.data.user.id,
+          email: result.data.user.email,
+          name: result.data.user.name,
+          role: result.data.user.role,
+          avatar: result.data.user.avatar || null,
+        };
+        const newToken = result.data.token;
+        setUser(userData);
+        setToken(newToken);
+        localStorage.setItem("edupath_token", newToken);
+        localStorage.setItem("edupath_user", JSON.stringify(userData));
+        return { success: true, role: userData.role };
+      }
+      return { success: false, message: result.message || "Login gagal" };
+    } catch {
+      return { success: false, message: "Gagal terhubung ke server. Pastikan backend berjalan." };
     }
-
-    // Fallback: any email/password works for demo
-    const role: "SISWA" | "GURU" = email.includes("guru") ? "GURU" : "SISWA";
-    const userData: User = {
-      id: `${role.toLowerCase()}-${Date.now()}`,
-      email,
-      name: email.includes("guru") ? "Guru Demo" : "Siswa Demo",
-      role,
-      ...(role === "SISWA" ? { student: { id: "s-demo", nis: "99999", kelas: "X IPA 1" } } : {}),
-      ...(role === "GURU" ? { teacher: { id: "t-demo", nip: "99999", mataPelajaran: "Demo" } } : {}),
-    };
-    const newToken = `token-${Date.now()}`;
-    setUser(userData);
-    setToken(newToken);
-    localStorage.setItem("edupath_token", newToken);
-    localStorage.setItem("edupath_user", JSON.stringify(userData));
-    return { success: true, role: userData.role };
   }, []);
 
   const register = useCallback(async (data: RegisterData) => {
-    const userData: User = {
-      id: `siswa-${Date.now()}`,
-      email: data.email,
-      name: data.name,
-      role: "SISWA",
-      nis: data.nis || `NIS-${Date.now()}`,
-      kelas: data.kelas || "X IPA 1",
-      student: { id: `s-${Date.now()}`, nis: data.nis || `NIS-${Date.now()}`, kelas: data.kelas || "X IPA 1" },
-    };
-    const newToken = `token-${Date.now()}`;
-    setUser(userData);
-    setToken(newToken);
-    localStorage.setItem("edupath_token", newToken);
-    localStorage.setItem("edupath_user", JSON.stringify(userData));
-    return { success: true, message: "Registrasi berhasil!" };
+    try {
+      const res = await fetch(`${API_URL}/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      const result = await res.json();
+      if (result.success && result.data) {
+        const userData: User = {
+          id: result.data.user.id,
+          email: result.data.user.email,
+          name: result.data.user.name,
+          role: result.data.user.role,
+          avatar: result.data.user.avatar || null,
+        };
+        const newToken = result.data.token;
+        setUser(userData);
+        setToken(newToken);
+        localStorage.setItem("edupath_token", newToken);
+        localStorage.setItem("edupath_user", JSON.stringify(userData));
+        return { success: true, message: "Registrasi berhasil!" };
+      }
+      return { success: false, message: result.message || "Registrasi gagal" };
+    } catch {
+      return { success: false, message: "Gagal terhubung ke server. Pastikan backend berjalan." };
+    }
   }, []);
 
   const logout = useCallback(() => {

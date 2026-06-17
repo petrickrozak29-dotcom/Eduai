@@ -1,46 +1,95 @@
 "use client";
 
-import DashboardShell from "@/components/layout/DashboardShell";
-import { getMockMaterials } from "@/lib/api";
 import { useState } from "react";
+import { motion } from "framer-motion";
+import DashboardShell from "@/components/layout/DashboardShell";
 
-export default function MateriSiswaPage() {
-  const [tab, setTab] = useState<"semua" | "visual" | "auditori" | "kinestetik">("semua");
-  const materials = getMockMaterials();
-  const filtered = tab === "semua" ? materials : materials.filter((m) => m.type === tab);
+interface MaterialItem {
+  id: string;
+  subject: string;
+  chaptersCount: number;
+  progress: number;
+}
+
+const subjects = ["Matematika", "Fisika", "Kimia", "Biologi", "Bahasa Indonesia", "Bahasa Inggris", "Sejarah", "Geografi", "Ekonomi", "Sosiologi"];
+
+export default function MateriPage() {
+  const [filterSubject, setFilterSubject] = useState("");
+  const [materials] = useState<MaterialItem[]>([]);
+
+  const filteredMaterials = filterSubject
+    ? materials.filter((m) => m.subject === filterSubject)
+    : materials;
 
   return (
     <DashboardShell>
-      <div className="space-y-5">
-        <header className="rounded-lg border border-white/70 bg-white/72 p-5 shadow backdrop-blur-2xl">
-          <p className="text-sm font-black uppercase text-red-600">Siswa</p>
-          <h2 className="mt-2 text-4xl font-black text-slate-950">Materi Belajar 📖</h2>
-          <p className="mt-2 text-base text-slate-600">Materi adaptif sesuai gaya belajarmu.</p>
-          <div className="mt-4 flex gap-2">
-            {(["semua","visual","auditori","kinestetik"] as const).map((t) => (
-              <button key={t} onClick={() => setTab(t)}
-                className={`rounded-lg px-4 py-2 text-sm font-black transition ${tab === t ? "bg-red-600 text-white shadow-lg" : "bg-white text-slate-600 hover:bg-slate-50 border border-slate-200"}`}>
-                {t.charAt(0).toUpperCase() + t.slice(1)}
-              </button>
-            ))}
-          </div>
-        </header>
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-black text-slate-950">Materi</h1>
+          <p className="text-sm font-bold text-slate-500 mt-1">Belajar sesuai mata pelajaran</p>
+        </div>
 
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {filtered.map((m) => (
-            <div key={m.id} className="rounded-lg border border-white/70 bg-white p-5 shadow-sm transition hover:shadow-md">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-lg font-black text-slate-950">{m.title}</p>
-                  <p className="text-sm font-bold text-slate-500">{m.subject} • {m.chapters}</p>
-                </div>
-                <span className={`rounded-lg px-3 py-1 text-xs font-black ${m.status === "published" ? "bg-emerald-100 text-emerald-700" : m.status === "review" ? "bg-yellow-100 text-yellow-700" : "bg-slate-100 text-slate-600"}`}>{m.status}</span>
+        {/* Filter */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="rounded-xl border-2 border-slate-200 bg-white p-4 shadow-lg"
+        >
+          <label className="text-sm font-black text-slate-950 mb-2 block">Filter Mata Pelajaran</label>
+          <select
+            value={filterSubject}
+            onChange={(e) => setFilterSubject(e.target.value)}
+            className="w-full rounded-lg border-2 border-slate-200 px-4 py-3 font-bold text-slate-950 focus:border-slate-950 focus:outline-none"
+          >
+            <option value="">Semua Mata Pelajaran</option>
+            {subjects.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+        </motion.div>
+
+        {/* Empty State */}
+        {filteredMaterials.length === 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+            className="rounded-xl border-2 border-slate-200 bg-white p-8 text-center shadow-lg"
+          >
+            <p className="text-5xl">📚</p>
+            <p className="mt-3 text-lg font-black text-slate-950">Belum ada materi</p>
+            <p className="mt-1 text-sm font-bold text-slate-500">
+              Materi akan muncul setelah AI Assistant menghasilkan materi berdasarkan kelas Anda
+            </p>
+          </motion.div>
+        )}
+
+        {/* Material Cards */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {filteredMaterials.map((mat) => (
+            <motion.div
+              key={mat.id}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className="rounded-xl border-2 border-slate-200 bg-white p-5 shadow-lg transition hover:shadow-xl cursor-pointer"
+            >
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="text-lg font-black text-slate-950">{mat.subject}</h2>
+                <span className="text-2xl">📖</span>
               </div>
-              <div className="mt-3 flex items-center gap-2">
-                <span className="rounded bg-slate-100 px-2 py-1 text-xs font-bold text-slate-600">{m.type}</span>
+              <p className="text-sm font-bold text-slate-500 mb-3">
+                {mat.chaptersCount} Bab
+              </p>
+              <div className="overflow-hidden rounded-full bg-slate-100">
+                <div
+                  className="h-3 rounded-full bg-emerald-500 transition-all"
+                  style={{ width: `${mat.progress}%` }}
+                />
               </div>
-              <button className="mt-4 rounded-lg bg-red-600 px-4 py-2 text-xs font-black text-white shadow-lg hover:bg-red-700">Mulai Belajar</button>
-            </div>
+              <p className="mt-1 text-xs font-bold text-slate-500">{mat.progress}% selesai</p>
+            </motion.div>
           ))}
         </div>
       </div>

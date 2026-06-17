@@ -18,12 +18,11 @@ interface NavItem {
 
 const siswaNav: NavItem[] = [
   { label: "Beranda", href: "/dashboard/siswa", icon: HomeIcon },
-  { label: "Learning Path", href: "/dashboard/siswa/learning-path", icon: PathIcon },
+  { label: "Kelas Saya", href: "/dashboard/siswa/learning-path", icon: PathIcon },
   { label: "Materi", href: "/dashboard/siswa/materi", icon: BookIcon },
   { label: "Quiz", href: "/dashboard/siswa/quiz", icon: ClipboardIcon },
   { label: "AI Assistant", href: "/dashboard/siswa/ai-assistant", icon: BotIcon },
   { label: "Learning Index", href: "/dashboard/siswa/learning-index", icon: ChartIcon },
-  { label: "Progress", href: "/dashboard/siswa/progress", icon: TrendingIcon },
   { label: "Forum", href: "/dashboard/siswa/forum", icon: MessageIcon },
   { label: "Event", href: "/dashboard/siswa/event", icon: TrophyIcon },
   { label: "Pengaturan", href: "/dashboard/siswa/pengaturan", icon: SettingsIcon },
@@ -36,9 +35,7 @@ const guruNav: NavItem[] = [
   { label: "AI Generate Materi", href: "/dashboard/guru/ai-generate-materi", icon: SparkIcon },
   { label: "AI Generate Quiz", href: "/dashboard/guru/ai-generate-quiz", icon: SparkIcon },
   { label: "Bank Soal", href: "/dashboard/guru/bank-soal", icon: DatabaseIcon },
-  { label: "Monitoring Siswa", href: "/dashboard/guru/monitoring-siswa", icon: EyeIcon },
-  { label: "Learning Index", href: "/dashboard/guru/learning-index", icon: ChartIcon },
-  { label: "Analitik Kelas", href: "/dashboard/guru/analitik-kelas", icon: AnalyticsIcon },
+  { label: "Monitoring & Analitik", href: "/dashboard/guru/monitoring-siswa", icon: EyeIcon },
   { label: "Forum", href: "/dashboard/guru/forum", icon: MessageIcon },
   { label: "Event", href: "/dashboard/guru/event", icon: TrophyIcon },
   { label: "Pengaturan", href: "/dashboard/guru/pengaturan", icon: SettingsIcon },
@@ -99,14 +96,12 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="edupath-shell flex min-h-screen">
-      {/* Backdrop */}
       <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
         <span className="learning-band learning-band-one" />
         <span className="learning-band learning-band-two" />
         <span className="grid-sheen" />
       </div>
 
-      {/* Mobile sidebar toggle */}
       <button
         onClick={() => setSidebarOpen(!sidebarOpen)}
         className="fixed left-4 top-4 z-50 flex h-12 w-12 items-center justify-center rounded-lg bg-white shadow-lg ring-1 ring-slate-200 lg:hidden"
@@ -117,7 +112,6 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
         </svg>
       </button>
 
-      {/* Sidebar */}
       <aside
         className={`fixed inset-y-0 left-0 z-40 w-72 transform border-r border-white/50 bg-white/75 backdrop-blur-2xl transition-transform duration-200 lg:relative lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
@@ -176,12 +170,10 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      {/* Overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-30 bg-black/20 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* Main content */}
       <main className="relative z-10 flex-1 px-4 py-6 sm:px-6 lg:px-8 overflow-y-auto">
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
           {children}
@@ -191,7 +183,6 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
   );
 }
 
-// Icons
 function HomeIcon(props: SVGProps<SVGSVGElement>) {
   return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M3 12l2-2m0 0l7-7 7 7m-9 2v6m-4-6v6m8-6v6m4-6v6" /></svg>;
 }
@@ -210,14 +201,11 @@ function BotIcon(props: SVGProps<SVGSVGElement>) {
 function ChartIcon(props: SVGProps<SVGSVGElement>) {
   return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M4 19V5" /><path d="M4 19h16" /><path d="M8 16v-5" /><path d="M12 16V8" /><path d="M16 16v-7" /></svg>;
 }
-function TrendingIcon(props: SVGProps<SVGSVGElement>) {
-  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M23 6l-9 9-4-4-7 7" /><path d="M17 6h6v6" /></svg>;
-}
 function MessageIcon(props: SVGProps<SVGSVGElement>) {
   return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M21 12a7 7 0 0 1-7 7H8l-5 3 2-5a7 7 0 1 1 16-5Z" /><path d="M8 11h8M8 15h5" /></svg>;
 }
 function TrophyIcon(props: SVGProps<SVGSVGElement>) {
-  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M8 21h12M12 17v4" /><path d="M7 4h10v5a5 5 0 0 1-10 0V4Z" /><path d="M7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3" /></svg>;
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M8 21h8M12 17v4" /><path d="M7 4h10v5a5 5 0 0 1-10 0V4Z" /><path d="M7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3" /></svg>;
 }
 function SettingsIcon(props: SVGProps<SVGSVGElement>) {
   return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="12" cy="12" r="3" /><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" /></svg>;
@@ -236,9 +224,6 @@ function DatabaseIcon(props: SVGProps<SVGSVGElement>) {
 }
 function EyeIcon(props: SVGProps<SVGSVGElement>) {
   return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z" /><circle cx="12" cy="12" r="3" /></svg>;
-}
-function AnalyticsIcon(props: SVGProps<SVGSVGElement>) {
-  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M21 12a9 9 0 1 1-9-9" /><path d="M12 3v9l4.5 4.5" /></svg>;
 }
 function CodeIcon(props: SVGProps<SVGSVGElement>) {
   return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M16 18l6-6-6-6M8 6l-6 6 6 6" /></svg>;

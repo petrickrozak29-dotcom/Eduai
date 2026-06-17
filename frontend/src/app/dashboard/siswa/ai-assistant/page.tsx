@@ -1,79 +1,148 @@
 "use client";
 
+import { useState, useRef, useEffect } from "react";
+import { motion } from "framer-motion";
 import DashboardShell from "@/components/layout/DashboardShell";
-import { useState } from "react";
+
+interface Message {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  timestamp: Date;
+}
 
 export default function AiAssistantPage() {
-  const [messages, setMessages] = useState<{ role: "user" | "ai"; text: string }[]>([
-    { role: "ai", text: "Halo! Aku AI Assistant EduPath. Tanya apa aja tentang pelajaranmu! 🚀" },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const handleSend = () => {
-    if (!input.trim()) return;
-    setMessages([...messages, { role: "user", text: input }]);
-    setLoading(true);
-    setTimeout(() => {
-      setMessages((prev) => [...prev, {
-        role: "ai",
-        text: `EduPath AI: ${input}. Konsep intinya adalah... Mulai dari definisi, contoh sederhana, lalu latihan soal biar paham. Mau aku bikin flashcard juga?`,
-      }]);
-      setLoading(false);
-    }, 1000);
-    setInput("");
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const [showFlashcard, setShowFlashcard] = useState(false);
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const handleSend = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim()) return;
+    const userMsg: Message = {
+      id: Date.now().toString(),
+      role: "user",
+      content: input,
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, userMsg]);
+    setInput("");
+    // Mock AI response
+    setTimeout(() => {
+      const aiMsg: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: "Siap! AI akan merespons setelah integrasi API real-time.",
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, aiMsg]);
+    }, 1000);
+  };
+
+  const quickActions = [
+    { label: "Rangkum", icon: "📝" },
+    { label: "Flashcard", icon: "🃏" },
+    { label: "Latihan Soal", icon: "✏️" },
+  ];
+
+  const handleFileUpload = () => {
+    // Will integrate file upload
+    alert("Upload file akan tersedia setelah integrasi API");
+  };
 
   return (
     <DashboardShell>
-      <div className="space-y-5">
-        <header className="rounded-lg border border-white/70 bg-white/72 p-5 shadow backdrop-blur-2xl">
-          <p className="text-sm font-black uppercase text-emerald-600">Siswa</p>
-          <h2 className="mt-2 text-4xl font-black text-slate-950">AI Assistant 🤖</h2>
-          <p className="mt-2 text-base text-slate-600">Tanya apa aja, AI bantu jelasin.</p>
-        </header>
+      <div className="flex h-[calc(100vh-12rem)] flex-col space-y-4">
+        <div>
+          <h1 className="text-3xl font-black text-slate-950">AI Assistant</h1>
+          <p className="text-sm font-bold text-slate-500 mt-1">Tanya apapun tentang pelajaran</p>
+        </div>
 
-        <div className="grid gap-5 xl:grid-cols-[1fr_320px]">
-          <div className="rounded-lg border border-white/70 bg-white/72 p-5 shadow backdrop-blur-2xl">
-            <div className="h-[400px] overflow-y-auto space-y-4">
-              {messages.map((m, i) => (
-                <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[80%] rounded-lg p-4 ${m.role === "user" ? "bg-slate-950 text-white" : "bg-white border border-slate-200"}`}>
-                    <p className="text-sm font-semibold leading-6">{m.text}</p>
+        {/* Chat Area */}
+        <div className="flex flex-1 flex-col rounded-xl border-2 border-slate-200 bg-white shadow-lg overflow-hidden">
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {messages.length === 0 ? (
+              <div className="flex h-full flex-col items-center justify-center text-center p-8">
+                <p className="text-6xl">🤖</p>
+                <h2 className="mt-4 text-xl font-black text-slate-950">Halo! Ada yang bisa dibantu?</h2>
+                <p className="mt-2 text-sm font-bold text-slate-500">
+                  Tanyakan tentang materi pelajaran, minta rangkuman, atau latihan soal
+                </p>
+              </div>
+            ) : (
+              messages.map((msg) => (
+                <motion.div
+                  key={msg.id}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                >
+                  <div
+                    className={`max-w-[80%] rounded-xl border-2 px-4 py-3 ${
+                      msg.role === "user"
+                        ? "border-slate-950 bg-slate-950 text-white"
+                        : "border-slate-200 bg-slate-50 text-slate-950"
+                    }`}
+                  >
+                    <p className="text-sm font-bold">{msg.content}</p>
+                    <p className="mt-1 text-xs font-bold opacity-60">
+                      {msg.timestamp.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}
+                    </p>
                   </div>
-                </div>
-              ))}
-              {loading && <div className="flex justify-start"><div className="rounded-lg bg-white border border-slate-200 p-4"><p className="text-sm font-semibold text-slate-500">Mengetik...</p></div></div>}
-            </div>
-            <div className="mt-4 flex gap-3">
-              <input type="text" value={input} onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                placeholder="Tanya tentang pelajaran..." className="h-12 flex-1 rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100" />
-              <button onClick={handleSend} disabled={loading}
-                className="h-12 rounded-lg bg-emerald-600 px-5 text-sm font-black text-white shadow-lg hover:bg-emerald-700 disabled:opacity-50">Kirim</button>
-            </div>
+                </motion.div>
+              ))
+            )}
+            <div ref={messagesEndRef} />
           </div>
 
-          <div className="space-y-4">
-            <div className="rounded-lg border border-white/70 bg-white/72 p-5 shadow backdrop-blur-2xl">
-              <p className="text-sm font-black text-slate-950">Mode Belajar</p>
-              <div className="mt-3 space-y-2">
-                <button onClick={() => setShowFlashcard(false)} className="w-full rounded-lg bg-slate-100 px-4 py-3 text-left text-sm font-black text-slate-700 hover:bg-slate-200">💬 Chat</button>
-                <button onClick={() => setShowFlashcard(true)} className="w-full rounded-lg bg-slate-100 px-4 py-3 text-left text-sm font-black text-slate-700 hover:bg-slate-200">📇 Flashcard</button>
-              </div>
-            </div>
-            {showFlashcard && (
-              <div className="rounded-lg border border-white/70 bg-white p-5 shadow">
-                <p className="text-sm font-black text-slate-950">Flashcard</p>
-                <div className="mt-3 rounded-lg bg-yellow-50 p-4 text-center">
-                  <p className="font-black text-slate-950">Konsep Inti</p>
-                  <p className="mt-2 text-sm text-slate-600">Ide utama pembelajaran</p>
-                </div>
-                <button className="mt-3 w-full rounded-lg bg-emerald-600 py-2 text-xs font-black text-white">Balik Kartu</button>
-              </div>
-            )}
+          {/* Quick Actions */}
+          <div className="flex gap-2 border-t-2 border-slate-100 px-4 py-3">
+            {quickActions.map((action) => (
+              <button
+                key={action.label}
+                className="flex items-center gap-1 rounded-lg border-2 border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-950 shadow-sm transition hover:bg-slate-50"
+              >
+                <span>{action.icon}</span>
+                <span>{action.label}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Input */}
+          <div className="border-t-2 border-slate-100 p-4">
+            <form onSubmit={handleSend} className="flex gap-2">
+              <button
+                type="button"
+                onClick={handleFileUpload}
+                className="flex items-center gap-1 rounded-lg border-2 border-slate-200 bg-white px-3 py-3 font-bold text-slate-500 transition hover:bg-slate-50"
+                title="Upload file"
+              >
+                <span className="text-lg">📎</span>
+              </button>
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Ketik pesan..."
+                className="flex-1 rounded-lg border-2 border-slate-200 px-4 py-3 font-bold text-slate-950 placeholder:text-slate-400 focus:border-slate-950 focus:outline-none"
+              />
+              <button
+                type="submit"
+                disabled={!input.trim()}
+                className="rounded-lg border-2 border-slate-950 bg-slate-950 px-6 py-3 font-black text-white shadow-lg transition hover:bg-slate-800 disabled:opacity-50"
+              >
+                Kirim
+              </button>
+            </form>
           </div>
         </div>
       </div>

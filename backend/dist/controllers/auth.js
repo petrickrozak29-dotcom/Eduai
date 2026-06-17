@@ -28,7 +28,7 @@ function parseRole(role) {
 }
 export const register = async (req, res) => {
     try {
-        const { email, password, name, role, nip, nis, kelas, avatar, mataPelajaran } = req.body;
+        const { email, password, name, role, nip, nis, kelas, avatar, mataPelajaran, tempatLahir, tanggalLahir, jenisKelamin, agama, alamat, noHP, pendidikanTerakhir, perguruanTinggi, programStudi, tahunLulus, nuptk, statusKepegawaian, instansi, } = req.body;
         if (!email || !password || !name) {
             sendError(res, "Email, password, dan nama wajib diisi", 400);
             return;
@@ -52,6 +52,19 @@ export const register = async (req, res) => {
             nip: parsedRole === "GURU" ? teacherNip : null,
             nis: parsedRole === "SISWA" ? studentNis : null,
             kelas: parsedRole === "SISWA" ? kelas || null : null,
+            tempatLahir: tempatLahir || null,
+            tanggalLahir: tanggalLahir ? new Date(tanggalLahir) : null,
+            jenisKelamin: jenisKelamin || null,
+            agama: agama || null,
+            alamat: alamat || null,
+            noHP: noHP || null,
+            pendidikanTerakhir: pendidikanTerakhir || null,
+            perguruanTinggi: perguruanTinggi || null,
+            programStudi: programStudi || null,
+            tahunLulus: tahunLulus ? Number(tahunLulus) : null,
+            nuptk: nuptk || null,
+            statusKepegawaian: statusKepegawaian || null,
+            instansi: instansi || null,
         };
         // Add teacher/student/developer relations
         if (parsedRole === "GURU") {

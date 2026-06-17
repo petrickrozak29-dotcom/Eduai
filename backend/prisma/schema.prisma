@@ -13,6 +13,24 @@ enum Role {
   DEVELOPER
 }
 
+enum ClassPhase {
+  E
+  F
+}
+
+enum PhaseFSpecialization {
+  MIPA
+  IPS
+  BAHASA
+  VOKASI
+}
+
+enum PretestLevel {
+  TIDAK_PAHAM
+  KURANG_PAHAM
+  PAHAM
+}
+
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
@@ -23,6 +41,19 @@ model User {
   nis       String?  @unique
   kelas     String?
   avatar    String?
+  tempatLahir String?
+  tanggalLahir DateTime?
+  jenisKelamin String?
+  agama     String?
+  alamat    String?
+  noHP      String?
+  pendidikanTerakhir String?
+  perguruanTinggi String?
+  programStudi String?
+  tahunLulus Int?
+  nuptk     String?
+  statusKepegawaian String?
+  instansi  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -43,8 +74,9 @@ model Teacher {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  user  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  subjects Subject[] @relation("TeacherSubjects")
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subjects  Subject[]  @relation("TeacherSubjects")
+  kelasList Kelas[]
 }
 
 model Student {
@@ -58,6 +90,7 @@ model Student {
   user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   learningProfile LearningProfile?
   results         Result[]
+  classEnrollments ClassStudent[]
 }
 
 model Developer {
@@ -69,6 +102,58 @@ model Developer {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model Kelas {
+  id             String   @id @default(uuid())
+  name           String
+  classCode      String   @unique
+  phase          ClassPhase
+  classLevel     String?
+  specialization PhaseFSpecialization?
+  category       String   @default("umum")
+  teacherId      String
+  subjectId      String?
+  description    String?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  teacher       Teacher         @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  subject       Subject?        @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  enrollments   ClassStudent[]
+  materials     ClassMaterial[]
+  events        Event[]
+  forums        Forum[]
+  quizzes       Quiz[]
+}
+
+model ClassStudent {
+  id        String   @id @default(uuid())
+  kelasId   String
+  studentId String
+  pretestScore Int?
+  pretestLevel PretestLevel?
+  learningIndex Float? @default(0)
+  joinedAt  DateTime @default(now())
+
+  kelas   Kelas   @relation(fields: [kelasId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([kelasId, studentId])
+}
+
+model ClassMaterial {
+  id         String   @id @default(uuid())
+  kelasId    String
+  materialId String
+  isPublished Boolean @default(false)
+  createdAt  DateTime @default(now())
+
+  kelas    Kelas    @relation(fields: [kelasId], references: [id], onDelete: Cascade)
+  material Material @relation(fields: [materialId], references: [id], onDelete: Cascade)
+
+  @@unique([kelasId, materialId])
+}
+
 model Subject {
   id          String   @id @default(uuid())
   name        String
@@ -76,6 +161,8 @@ model Subject {
   kelas       String?
   teacherId   String?
   imageUrl    String?
+  category    String   @default("umum")
+  specialization PhaseFSpecialization?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -84,6 +171,7 @@ model Subject {
   materials Material[]
   quizzes   Quiz[]
   forums    Forum[]
+  kelasList Kelas[]
 }
 
 model Chapter {
@@ -107,27 +195,33 @@ model Material {
   content     String   @default("")
   contentType String   @default("text")
   imageUrl    String?
-  profilA     String?  @default("")
-  profilB     String?  @default("")
-  profilC     String?  @default("")
+  fileUrl     String?
+  level       PretestLevel?
+  babQuizCount Int?    @default(10)
+  finalQuizCount Int?  @default(20)
+  isPublished Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  subject Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
-  chapter Chapter? @relation(fields: [chapterId], references: [id])
+  subject    Subject         @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  chapter    Chapter?        @relation(fields: [chapterId], references: [id])
+  classMaterials ClassMaterial[]
 }
 
 model Quiz {
   id        String   @id @default(uuid())
   chapterId String?
   subjectId String
+  kelasId   String?
   title     String
   type      String   @default("bab")
+  isPretest Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  chapter   Chapter?  @relation(fields: [chapterId], references: [id])
-  subject   Subject   @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  chapter Chapter? @relation(fields: [chapterId], references: [id])
+  subject Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  kelas   Kelas?   @relation(fields: [kelasId], references: [id], onDelete: SetNull)
   questions Question[]
   results   Result[]
 }
@@ -136,7 +230,7 @@ model Question {
   id        String   @id @default(uuid())
   quizId    String
   text      String   @default("")
-  options   Json     @default("{}")
+  options   String   @default("{}")
   correctAnswer String @default("A")
   points    Int      @default(10)
   createdAt DateTime @default(now())
@@ -164,6 +258,7 @@ model Result {
   score       Int      @default(0)
   totalPoints Int      @default(0)
   percentage  Float    @default(0)
+  pretestLevel PretestLevel?
   createdAt   DateTime @default(now())
 
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
@@ -187,6 +282,7 @@ model LearningProfile {
 
 model Forum {
   id        String   @id @default(uuid())
+  kelasId   String?
   subjectId String?
   userId    String
   title     String
@@ -194,9 +290,10 @@ model Forum {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  subject  Subject?     @relation(fields: [subjectId], references: [id], onDelete: SetNull)
-  replies  ForumReply[]
+  kelas   Kelas?        @relation(fields: [kelasId], references: [id], onDelete: Cascade)
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject Subject?      @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  replies ForumReply[]
 }
 
 model ForumReply {
@@ -212,16 +309,22 @@ model ForumReply {
 }
 
 model Event {
-  id          String   @id @default(uuid())
+  id          String     @id @default(uuid())
   title       String
-  description String?  @default("")
-  date        DateTime @default(now())
-  type        String   @default("academic")
+  description String?    @default("")
+  date        DateTime   @default(now())
+  type        String     @default("academic")
+  category    String?    @default("academic")
+  penyelenggara String?
+  photoUrl    String?
+  link        String?
   userId      String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  kelasId     String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kelas Kelas? @relation(fields: [kelasId], references: [id], onDelete: SetNull)
 }
 
 model SystemLog {

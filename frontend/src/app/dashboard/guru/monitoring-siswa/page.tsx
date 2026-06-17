@@ -7,14 +7,34 @@ import { useState } from "react";
 export default function MonitoringSiswaPage() {
   const classes = getMockClasses();
   const students = getMockStudents();
-  const [selectedClass, setSelectedClass] = useState(classes[0].id);
+  const [selectedClass, setSelectedClass] = useState<string | null>(null);
   const [search, setSearch] = useState("");
 
-  const activeClass = classes.find((c) => c.id === selectedClass) || classes[0];
-  const classStudents = students.filter((s) => s.kelas === activeClass.name);
+  const hasClasses = classes.length > 0;
+  const activeClass = selectedClass ? classes.find((c) => c.id === selectedClass) : classes[0];
+  const classStudents = hasClasses && activeClass ? students.filter((s) => s.kelas === activeClass.name) : [];
   const filtered = classStudents.filter((s) =>
     s.name.toLowerCase().includes(search.toLowerCase()) || s.nis.includes(search)
   );
+
+  if (!hasClasses) {
+    return (
+      <DashboardShell>
+        <div className="space-y-5">
+          <header className="rounded-lg border border-white/70 bg-white/72 p-5 shadow backdrop-blur-2xl">
+            <p className="text-sm font-black uppercase text-yellow-600">Monitoring</p>
+            <h2 className="mt-2 text-4xl font-black text-slate-950 sm:text-5xl">Monitoring Siswa 👀</h2>
+            <p className="mt-4 max-w-3xl text-base leading-8 text-slate-600">Belum ada data. Buat kelas terlebih dahulu.</p>
+          </header>
+          <div className="rounded-lg border border-white/70 bg-white/72 p-8 text-center shadow backdrop-blur-2xl">
+            <span className="text-5xl">👀</span>
+            <h3 className="mt-4 text-2xl font-black text-slate-950">Belum Ada Data</h3>
+            <p className="mt-2 text-sm text-slate-500">Belum ada kelas dengan siswa untuk dimonitoring.</p>
+          </div>
+        </div>
+      </DashboardShell>
+    );
+  }
 
   return (
     <DashboardShell>
@@ -33,7 +53,7 @@ export default function MonitoringSiswaPage() {
           <div className="rounded-lg border border-white/70 bg-white/72 p-4 shadow backdrop-blur-2xl">
             <p className="text-xs font-black uppercase text-slate-500 mb-3">Kelas</p>
             <div className="space-y-2">
-              {classes.map((cls) => (
+            {classes.map((cls) => (
                 <button key={cls.id} onClick={() => setSelectedClass(cls.id)}
                   className={`w-full rounded-lg border p-3 text-left transition ${selectedClass === cls.id ? "border-yellow-200 bg-yellow-50 shadow-sm" : "border-slate-200 bg-white hover:border-slate-300"}`}>
                   <p className="text-sm font-black text-slate-950">{cls.name}</p>
@@ -43,6 +63,9 @@ export default function MonitoringSiswaPage() {
                   </div>
                 </button>
               ))}
+            {selectedClass === null && classes[0] && (
+              <div className="rounded-lg bg-amber-50 p-3 text-xs font-bold text-amber-700">Pilih kelas di atas</div>
+            )}
             </div>
           </div>
 
@@ -50,9 +73,9 @@ export default function MonitoringSiswaPage() {
             {/* Class Stats */}
             <div className="grid gap-4 md:grid-cols-3">
               {[
-                { label: "Total Siswa", value: String(activeClass.students), color: "bg-blue-50 text-blue-700" },
-                { label: "Rata-rata LI", value: `${activeClass.avgIndex}%`, color: "bg-emerald-50 text-emerald-700" },
-                { label: "Status", value: activeClass.status === "aktif" ? "Aktif" : "Review", color: activeClass.status === "aktif" ? "bg-emerald-50 text-emerald-700" : "bg-yellow-50 text-yellow-700" },
+                { label: "Total Siswa", value: String(activeClass!.students), color: "bg-blue-50 text-blue-700" },
+                { label: "Rata-rata LI", value: `${activeClass!.avgIndex}%`, color: "bg-emerald-50 text-emerald-700" },
+                { label: "Status", value: activeClass!.status === "aktif" ? "Aktif" : "Review", color: activeClass!.status === "aktif" ? "bg-emerald-50 text-emerald-700" : "bg-yellow-50 text-yellow-700" },
               ].map((s) => (
                 <div key={s.label} className={`rounded-lg ${s.color} p-4`}>
                   <p className="text-xs font-black opacity-80">{s.label}</p>

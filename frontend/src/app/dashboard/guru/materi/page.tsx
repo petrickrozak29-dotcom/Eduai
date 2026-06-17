@@ -1,63 +1,79 @@
 "use client";
 
+import { useState } from "react";
 import DashboardShell from "@/components/layout/DashboardShell";
 import { getMockMaterials } from "@/lib/api";
-import { useState } from "react";
 
-export default function GuruMateriPage() {
+const subjects = ["Matematika", "Bahasa Indonesia", "Bahasa Inggris", "IPA", "IPS", "Pendidikan Agama", "PKN", "Informatika"];
+
+export default function GuruMateri() {
   const [materials] = useState(getMockMaterials());
-  const [filterStatus, setFilterStatus] = useState("Semua");
+  const [filter, setFilter] = useState("Semua");
 
-  const statuses = ["Semua", "published", "draft", "review"];
-  const filtered = filterStatus === "Semua" ? materials : materials.filter((m) => m.status === filterStatus);
+  const filtered = filter === "Semua" ? materials : materials.filter((m) => m.subject === filter);
 
   return (
     <DashboardShell>
-      <div className="space-y-5">
-        <header className="rounded-lg border border-white/70 bg-white/72 p-5 shadow backdrop-blur-2xl">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <p className="text-sm font-black uppercase text-rose-600">Materi</p>
-              <h2 className="mt-2 text-4xl font-black text-slate-950 sm:text-5xl">Materi Pembelajaran 📖</h2>
-              <p className="mt-2 text-base leading-8 text-slate-600">Kelola semua materi pembelajaran yang telah dibuat dan dipublikasi.</p>
-            </div>
-            <button className="inline-flex h-12 items-center gap-2 rounded-lg bg-rose-600 px-5 text-sm font-black text-white shadow-lg hover:bg-rose-700">
-              + Buat Materi Baru
+      <div className="mx-auto max-w-6xl">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-black text-slate-900">Penyimpanan Materi</h1>
+            <p className="mt-1 text-sm font-bold text-slate-500">
+              Kelola dan simpan materi pembelajaran
+            </p>
+          </div>
+          <button className="rounded-xl border-2 border-black bg-emerald-500 px-6 py-3 font-bold text-white shadow-lg transition hover:bg-emerald-600">
+            + Upload File
+          </button>
+        </div>
+
+        <div className="mb-6 flex flex-wrap gap-2">
+          <button
+            onClick={() => setFilter("Semua")}
+            className={`rounded-lg border-2 border-black px-4 py-2 text-sm font-bold shadow-md transition ${
+              filter === "Semua" ? "bg-slate-900 text-white" : "bg-white text-slate-700 hover:bg-slate-100"
+            }`}
+          >
+            Semua
+          </button>
+          {subjects.map((s) => (
+            <button
+              key={s}
+              onClick={() => setFilter(s)}
+              className={`rounded-lg border-2 border-black px-4 py-2 text-sm font-bold shadow-md transition ${
+                filter === s ? "bg-slate-900 text-white" : "bg-white text-slate-700 hover:bg-slate-100"
+              }`}
+            >
+              {s}
             </button>
-          </div>
-
-          <div className="mt-5 flex flex-wrap gap-2">
-            {statuses.map((s) => (
-              <button key={s} onClick={() => setFilterStatus(s)}
-                className={`rounded-lg px-4 py-2 text-xs font-black transition ${filterStatus === s ? "bg-slate-950 text-white shadow-lg" : "bg-white text-slate-600 border border-slate-200 hover:border-slate-300"}`}>
-                {s === "Semua" ? "Semua" : s.charAt(0).toUpperCase() + s.slice(1)}
-              </button>
-            ))}
-          </div>
-        </header>
-
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {filtered.map((m) => (
-            <div key={m.id} className="rounded-lg border border-white/70 bg-white p-5 shadow-sm transition hover:shadow-md">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-lg font-black text-slate-950">{m.title}</p>
-                  <p className="text-sm font-bold text-slate-500">{m.subject} • {m.chapters}</p>
-                </div>
-                <span className={`rounded-lg px-3 py-1 text-xs font-black ${
-                  m.status === "published" ? "bg-emerald-100 text-emerald-700" : m.status === "review" ? "bg-yellow-100 text-yellow-700" : "bg-slate-100 text-slate-600"
-                }`}>{m.status}</span>
-              </div>
-              <div className="mt-3 flex items-center gap-2">
-                <span className="rounded bg-slate-100 px-2 py-1 text-xs font-bold text-slate-600">{m.type}</span>
-              </div>
-              <div className="mt-4 flex gap-2">
-                <button className="rounded bg-blue-50 px-4 py-2 text-xs font-black text-blue-600 hover:bg-blue-100">Edit</button>
-                <button className="rounded bg-red-50 px-4 py-2 text-xs font-black text-red-600 hover:bg-red-100">Hapus</button>
-              </div>
-            </div>
           ))}
         </div>
+
+        {filtered.length === 0 ? (
+          <div className="rounded-xl border-2 border-black bg-blue-100 p-12 text-center shadow-xl">
+            <p className="text-5xl">📁</p>
+            <p className="mt-4 text-xl font-black text-slate-800">Belum ada materi</p>
+            <p className="mt-2 text-sm font-bold text-slate-500">
+              Upload file materi untuk memulai
+            </p>
+            <button className="mt-6 rounded-xl border-2 border-black bg-emerald-500 px-6 py-3 font-bold text-white shadow-lg transition hover:bg-emerald-600">
+              + Upload File
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {filtered.map((m) => (
+              <div
+                key={m.id}
+                className="rounded-xl border-2 border-black bg-white p-5 shadow-xl"
+              >
+                <p className="text-lg font-black text-slate-900">{m.title}</p>
+                <p className="mt-1 text-sm font-bold text-slate-500">{m.subject}</p>
+                <p className="mt-2 text-xs font-semibold text-slate-400">{m.chapters}</p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </DashboardShell>
   );

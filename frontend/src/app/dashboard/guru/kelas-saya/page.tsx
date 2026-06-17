@@ -1,261 +1,493 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import DashboardShell from "@/components/layout/DashboardShell";
-import { getMockClasses, getMockStudents } from "@/lib/api";
-import { useState } from "react";
+import { api, type ApiClass } from "@/lib/api";
+import {
+  generalSubjects,
+  getSpecializationByKey,
+  specializationGroups,
+  type Phase,
+  type PhaseFClassLevel,
+  type SpecializationKey,
+  type SubjectCategory,
+} from "@/lib/academicOptions";
+
+function generateKodeKelas(): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let code = "";
+  for (let i = 0; i < 6; i += 1) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
+function levelLabel(level?: string | null) {
+  if (level === "TIDAK_PAHAM") return "Tidak Paham";
+  if (level === "KURANG_PAHAM") return "Kurang Paham";
+  if (level === "PAHAM") return "Paham";
+  return "Belum pretest";
+}
 
 export default function KelasSayaPage() {
-  const [activeTab, setActiveTab] = useState<"kelas" | "tambah">("kelas");
-  const [selectedClass, setSelectedClass] = useState<string | null>(null);
-  const classes = getMockClasses();
-  const students = getMockStudents();
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [kelasList, setKelasList] = useState<ApiClass[]>([]);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedClass, setSelectedClass] = useState<ApiClass | null>(null);
+  const [fase, setFase] = useState<Phase>("E");
+  const [faseFKelas, setFaseFKelas] = useState<PhaseFClassLevel>("XI");
+  const [kategori, setKategori] = useState<SubjectCategory>("umum");
+  const [peminatan, setPeminatan] = useState<SpecializationKey | "">("");
+  const [mapel, setMapel] = useState("");
+  const [customMapel, setCustomMapel] = useState("");
+  const [namaKelas, setNamaKelas] = useState("");
+  const [kodeKelas, setKodeKelas] = useState(generateKodeKelas());
+  const [description, setDescription] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
 
-  const activeClass = classes.find((c) => c.id === selectedClass) || classes[0];
-  const classStudents = students.filter((s) => s.kelas === activeClass.name);
+  const selectedSpecialization = peminatan ? getSpecializationByKey(peminatan) : undefined;
+  const availableMapel = kategori === "umum" ? generalSubjects : selectedSpecialization?.subjects ?? [];
+  const finalSubject = mapel === "__custom" ? customMapel.trim() : mapel;
+
+  const emptyText = useMemo(() => {
+    if (message) return message;
+    return "Menunggu data kelas dari API real-time. Buat kelas baru untuk memulai.";
+  }, [message]);
+
+  const fetchClasses = async () => {
+    setLoading(true);
+    const result = await api.get<ApiClass[]>("/classes/my-classes");
+    if (result.success && Array.isArray(result.data)) {
+      setKelasList(result.data);
+      setMessage("");
+    } else {
+      setKelasList([]);
+      setMessage(result.message || "Data kelas belum tersedia dari server.");
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    let active = true;
+    api.get<ApiClass[]>("/classes/my-classes").then((result) => {
+      if (!active) return;
+      if (result.success && Array.isArray(result.data)) {
+        setKelasList(result.data);
+        setMessage("");
+      } else {
+        setKelasList([]);
+        setMessage(result.message || "Data kelas belum tersedia dari server.");
+      }
+      setLoading(false);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const handleFaseChange = (newFase: Phase) => {
+    setFase(newFase);
+    setKategori("umum");
+    setPeminatan("");
+    setMapel("");
+    setCustomMapel("");
+  };
+
+  const resetForm = () => {
+    setNamaKelas("");
+    setKodeKelas(generateKodeKelas());
+    setFase("E");
+    setFaseFKelas("XI");
+    setKategori("umum");
+    setPeminatan("");
+    setMapel("");
+    setCustomMapel("");
+    setDescription("");
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!finalSubject) {
+      setMessage("Mata pelajaran wajib dipilih atau diisi.");
+      return;
+    }
+
+    setSaving(true);
+    const payload = {
+      name: namaKelas,
+      phase: fase,
+      classLevel: fase === "E" ? "X" : faseFKelas,
+      category: kategori,
+      specialization: kategori === "peminatan" ? peminatan : null,
+      subjectName: finalSubject,
+      classCode: kodeKelas,
+      description,
+    };
+
+    const result = await api.post<ApiClass>("/classes", payload);
+    if (result.success && result.data) {
+      setKelasList((current) => [result.data, ...current]);
+      resetForm();
+      setShowModal(false);
+      setMessage("Kelas berhasil dibuat dan siap dipakai siswa dengan kode rahasia.");
+    } else {
+      setMessage(result.message || "Gagal membuat kelas. Periksa koneksi server.");
+    }
+    setSaving(false);
+  };
 
   return (
     <DashboardShell>
-      <div className="space-y-5">
-        {/* Header */}
-        <header className="rounded-lg border border-white/70 bg-white/72 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-2xl">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <p className="text-sm font-black uppercase text-emerald-600">Kelas Saya</p>
-              <h2 className="mt-2 text-4xl font-black text-slate-950 sm:text-5xl">
-                Manajemen Kelas 👨‍🏫
-              </h2>
-              <p className="mt-2 text-base leading-8 text-slate-600">
-                Buat kelas, tambah siswa, pantau progress dan Learning Index.
-              </p>
-            </div>
+      <div className="space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-black text-slate-900">Kelas Saya</h1>
+            <p className="mt-1 text-sm font-bold text-slate-500">
+              Buat kelas, atur fase, mata pelajaran, dan kode rahasia untuk siswa.
+            </p>
+          </div>
+          <button
+            onClick={() => setShowModal(true)}
+            className="rounded-xl border-2 border-black bg-emerald-500 px-6 py-3 font-bold text-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition hover:bg-emerald-600"
+          >
+            + Buat Kelas Baru
+          </button>
+        </div>
+
+        <p className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm font-bold text-amber-800 shadow-sm">
+          {loading ? "Memuat kelas dari server..." : emptyText}
+        </p>
+
+        {!loading && kelasList.length === 0 ? (
+          <div className="rounded-xl border-2 border-black bg-white p-12 text-center shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+            <p className="text-5xl font-black text-slate-300">0</p>
+            <h2 className="mt-4 text-2xl font-black text-slate-900">Belum Ada Kelas</h2>
+            <p className="mt-2 text-sm font-bold text-slate-500">
+              Data sengaja kosong sampai kelas dibuat dan tersimpan ke API.
+            </p>
             <button
-              onClick={() => setShowAddModal(true)}
-              className="inline-flex h-12 items-center gap-2 rounded-lg bg-emerald-600 px-5 text-sm font-black text-white shadow-lg shadow-emerald-600/20 hover:bg-emerald-700"
+              onClick={() => setShowModal(true)}
+              className="mt-6 rounded-xl border-2 border-black bg-slate-900 px-8 py-3 font-bold text-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition hover:bg-slate-800"
             >
               + Buat Kelas Baru
             </button>
           </div>
-        </header>
+        ) : (
+          <div className="grid gap-4 lg:grid-cols-2">
+            {kelasList.map((kelas) => (
+              <article key={kelas.id} className="rounded-xl border-2 border-black bg-white p-5 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-black uppercase text-emerald-600">
+                      Fase {kelas.phase} - Kelas {kelas.classLevel || (kelas.phase === "E" ? "X" : "XI/XII")}
+                    </p>
+                    <h2 className="mt-1 text-xl font-black text-slate-950">{kelas.name}</h2>
+                    <p className="mt-1 text-sm font-bold text-slate-500">{kelas.subject?.name || "Mata pelajaran belum tersimpan"}</p>
+                  </div>
+                  <div className="rounded-lg border-2 border-black bg-slate-950 px-4 py-2 text-center text-white">
+                    <p className="text-[10px] font-black uppercase text-white/60">Kode</p>
+                    <p className="text-lg font-black tracking-widest">{kelas.classCode}</p>
+                  </div>
+                </div>
 
-        {/* Tab Navigation */}
-        <div className="flex gap-2 rounded-lg bg-white/70 p-1 border border-white/70 backdrop-blur w-fit">
-          <button
-            onClick={() => setActiveTab("kelas")}
-            className={`rounded-lg px-5 py-3 text-sm font-black transition ${
-              activeTab === "kelas" ? "bg-slate-950 text-white shadow-lg" : "text-slate-600 hover:text-slate-950"
-            }`}
-          >
-            Daftar Kelas
-          </button>
-          <button
-            onClick={() => setActiveTab("tambah")}
-            className={`rounded-lg px-5 py-3 text-sm font-black transition ${
-              activeTab === "tambah" ? "bg-slate-950 text-white shadow-lg" : "text-slate-600 hover:text-slate-950"
-            }`}
-          >
-            Tambah Siswa
-          </button>
-        </div>
+                <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-lg bg-slate-50 p-3">
+                    <p className="text-xs font-bold text-slate-500">Siswa</p>
+                    <p className="text-lg font-black text-slate-950">{kelas._count?.enrollments ?? kelas.enrollments?.length ?? 0}</p>
+                  </div>
+                  <div className="rounded-lg bg-slate-50 p-3">
+                    <p className="text-xs font-bold text-slate-500">Materi</p>
+                    <p className="text-lg font-black text-slate-950">{kelas._count?.materials ?? kelas.materials?.length ?? 0}</p>
+                  </div>
+                  <div className="rounded-lg bg-slate-50 p-3">
+                    <p className="text-xs font-bold text-slate-500">Kategori</p>
+                    <p className="text-sm font-black capitalize text-slate-950">{kelas.category}</p>
+                  </div>
+                </div>
 
-        <div className="grid gap-5 xl:grid-cols-[320px_1fr]">
-          {/* Class List */}
-          <div className="rounded-lg border border-white/70 bg-white/72 p-4 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-2xl">
-            <p className="text-xs font-black uppercase text-slate-500 mb-3">Semua Kelas</p>
-            <div className="space-y-2">
-              {classes.map((cls) => (
                 <button
-                  key={cls.id}
-                  onClick={() => { setSelectedClass(cls.id); setActiveTab("kelas"); }}
-                  className={`w-full rounded-lg border p-4 text-left transition ${
-                    activeClass.id === cls.id
-                      ? "border-emerald-200 bg-emerald-50 shadow-sm"
-                      : "border-slate-200 bg-white hover:border-slate-300"
-                  }`}
+                  onClick={() => setSelectedClass(kelas)}
+                  className="mt-4 w-full rounded-lg border-2 border-black bg-white px-4 py-3 text-sm font-black text-slate-950 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition hover:bg-slate-50"
                 >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-base font-black text-slate-950">{cls.name}</p>
-                      <p className="text-xs font-bold text-slate-500">{cls.subject}</p>
-                    </div>
-                    <span className={`rounded-lg px-3 py-1 text-xs font-black ${
-                      cls.status === "aktif" ? "bg-emerald-100 text-emerald-700" : "bg-yellow-100 text-yellow-700"
-                    }`}>
-                      {cls.status === "aktif" ? "Aktif" : "Review"}
-                    </span>
-                  </div>
-                  <div className="mt-3 flex items-center gap-3 text-xs font-bold text-slate-500">
-                    <span>👥 {cls.students} siswa</span>
-                    <span>📊 {cls.avgIndex}% LI</span>
-                  </div>
-                  <div className="mt-2 h-1.5 overflow-hidden rounded-sm bg-slate-100">
-                    <div className="h-full rounded-sm bg-gradient-to-r from-emerald-500 to-blue-500" style={{ width: `${cls.avgIndex}%` }} />
-                  </div>
+                  Lihat Detail Kelas
                 </button>
-              ))}
-            </div>
+              </article>
+            ))}
           </div>
+        )}
+      </div>
 
-          {/* Class Detail */}
-          <div className="space-y-5">
-            {activeTab === "kelas" && (
-              <>
-                {/* Class Info */}
-                <div className="rounded-lg border border-white/70 bg-white/72 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-2xl">
-                  <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div>
-                      <p className="text-xs font-black uppercase text-emerald-600">Detail Kelas</p>
-                      <h3 className="text-2xl font-black text-slate-950">{activeClass.name}</h3>
-                      <p className="text-sm font-bold text-slate-500">{activeClass.subject} • {activeClass.teacher}</p>
-                    </div>
-                    <div className="flex gap-2">
-                      <button className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-black text-slate-700 hover:bg-slate-50">Edit</button>
-                      <button className="rounded-lg bg-red-600 px-4 py-2 text-sm font-black text-white hover:bg-red-700">Hapus</button>
-                    </div>
-                  </div>
+      {showModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4 backdrop-blur-sm"
+          onClick={() => setShowModal(false)}
+        >
+          <div
+            className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-xl border-2 border-black bg-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-2xl font-black text-slate-900">Buat Kelas Baru</h3>
+            <form onSubmit={handleSubmit} className="mt-5 space-y-5">
+              <div>
+                <label className="mb-1 block text-sm font-bold text-slate-700">Nama Kelas</label>
+                <input
+                  type="text"
+                  value={namaKelas}
+                  onChange={(e) => setNamaKelas(e.target.value)}
+                  placeholder="Contoh: Biologi Fase E 2026"
+                  required
+                  className="w-full rounded-lg border-2 border-black p-3 text-sm font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] outline-none"
+                />
+              </div>
 
-                  <div className="mt-5 grid gap-4 sm:grid-cols-3">
-                    {[
-                      { label: "Total Siswa", value: String(activeClass.students), tone: "bg-blue-50 text-blue-700" },
-                      { label: "Rata-rata LI", value: `${activeClass.avgIndex}%`, tone: "bg-emerald-50 text-emerald-700" },
-                      { label: "Status", value: activeClass.status === "aktif" ? "Aktif" : "Review", tone: activeClass.status === "aktif" ? "bg-emerald-50 text-emerald-700" : "bg-yellow-50 text-yellow-700" },
-                    ].map((stat) => (
-                      <div key={stat.label} className={`rounded-lg ${stat.tone} p-4`}>
-                        <p className="text-xs font-black opacity-80">{stat.label}</p>
-                        <p className="mt-1 text-xl font-black">{stat.value}</p>
-                      </div>
+              <div>
+                <label className="mb-1 block text-sm font-bold text-slate-700">Fase</label>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {(["E", "F"] as Phase[]).map((item) => (
+                    <button
+                      key={item}
+                      type="button"
+                      onClick={() => handleFaseChange(item)}
+                      className={`rounded-lg border-2 border-black px-4 py-3 font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition ${
+                        fase === item ? "bg-slate-900 text-white" : "bg-white text-slate-700 hover:bg-slate-100"
+                      }`}
+                    >
+                      Fase {item} {item === "E" ? "(Kelas X)" : "(Kelas XI/XII)"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {fase === "F" && (
+                <div>
+                  <label className="mb-1 block text-sm font-bold text-slate-700">Pilih Kelas</label>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {(["XI", "XII"] as PhaseFClassLevel[]).map((item) => (
+                      <button
+                        key={item}
+                        type="button"
+                        onClick={() => setFaseFKelas(item)}
+                        className={`rounded-lg border-2 border-black px-4 py-3 font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition ${
+                          faseFKelas === item ? "bg-slate-900 text-white" : "bg-white text-slate-700 hover:bg-slate-100"
+                        }`}
+                      >
+                        Kelas {item}
+                      </button>
                     ))}
                   </div>
                 </div>
+              )}
 
-                {/* Student List */}
-                <div className="rounded-lg border border-white/70 bg-white/72 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-2xl">
-                  <div className="mb-4 flex items-center justify-between">
-                    <p className="text-sm font-black text-slate-950">Daftar Siswa ({classStudents.length})</p>
-                    <button className="rounded-lg bg-blue-600 px-4 py-2 text-xs font-black text-white hover:bg-blue-700">+ Tambah</button>
-                  </div>
-
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm">
-                      <thead>
-                        <tr className="border-b border-slate-200 text-xs font-black uppercase text-slate-500">
-                          <th className="pb-3 pr-4">Nama</th>
-                          <th className="pb-3 pr-4">NIS</th>
-                          <th className="pb-3 pr-4">XP</th>
-                          <th className="pb-3 pr-4">Learning Index</th>
-                          <th className="pb-3 pr-4">Streak</th>
-                          <th className="pb-3">Aksi</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {classStudents.map((student) => (
-                          <tr key={student.id} className="border-b border-slate-100">
-                            <td className="py-3 pr-4 font-bold text-slate-950">{student.name}</td>
-                            <td className="py-3 pr-4 text-slate-600">{student.nis}</td>
-                            <td className="py-3 pr-4">{student.xp}</td>
-                            <td className="py-3 pr-4">
-                              <div className="flex items-center gap-2">
-                                <div className="h-2 w-16 overflow-hidden rounded-sm bg-slate-100">
-                                  <div className="h-full rounded-sm bg-gradient-to-r from-emerald-500 to-blue-500" style={{ width: `${student.learningIndex}%` }} />
-                                </div>
-                                <span className="text-xs font-black">{student.learningIndex}%</span>
-                              </div>
-                            </td>
-                            <td className="py-3 pr-4">{student.streak} hari</td>
-                            <td className="py-3">
-                              <div className="flex gap-2">
-                                <button className="rounded bg-blue-50 px-3 py-1 text-xs font-black text-blue-600 hover:bg-blue-100">Edit</button>
-                                <button className="rounded bg-red-50 px-3 py-1 text-xs font-black text-red-600 hover:bg-red-100">Hapus</button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                        {classStudents.length === 0 && (
-                          <tr>
-                            <td colSpan={6} className="py-8 text-center font-bold text-slate-400">Belum ada siswa di kelas ini</td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </>
-            )}
-
-            {activeTab === "tambah" && (
-              <div className="rounded-lg border border-white/70 bg-white/72 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] backdrop-blur-2xl">
-                <p className="text-xs font-black uppercase text-emerald-600">Tambah Siswa</p>
-                <h3 className="mt-1 text-2xl font-black text-slate-950">Tambah ke Kelas</h3>
-
-                <form className="mt-5 space-y-4" onSubmit={(e) => e.preventDefault()}>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <label className="block">
-                      <span className="text-sm font-black text-slate-700">Nama Siswa</span>
-                      <input type="text" placeholder="Nama lengkap" className="mt-2 h-12 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100" />
-                    </label>
-                    <label className="block">
-                      <span className="text-sm font-black text-slate-700">NIS</span>
-                      <input type="text" placeholder="Nomor Induk Siswa" className="mt-2 h-12 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100" />
-                    </label>
-                  </div>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <label className="block">
-                      <span className="text-sm font-black text-slate-700">Email</span>
-                      <input type="email" placeholder="nama@email.com" className="mt-2 h-12 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100" />
-                    </label>
-                    <label className="block">
-                      <span className="text-sm font-black text-slate-700">Kelas</span>
-                      <select className="mt-2 h-12 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100">
-                        {classes.map((c) => (
-                          <option key={c.id} value={c.name}>{c.name}</option>
-                        ))}
-                      </select>
-                    </label>
-                  </div>
-                  <button type="submit" className="inline-flex h-12 items-center gap-2 rounded-lg bg-emerald-600 px-6 text-sm font-black text-white shadow-lg hover:bg-emerald-700">
-                    + Tambah Siswa
+              <div>
+                <label className="mb-1 block text-sm font-bold text-slate-700">Kategori Mata Pelajaran</label>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setKategori("umum");
+                      setPeminatan("");
+                      setMapel("");
+                      setCustomMapel("");
+                    }}
+                    className={`rounded-lg border-2 border-black px-4 py-3 font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition ${
+                      kategori === "umum" ? "bg-slate-900 text-white" : "bg-white text-slate-700 hover:bg-slate-100"
+                    }`}
+                  >
+                    Umum
                   </button>
-                </form>
-
-                <div className="mt-6 rounded-lg border border-blue-200 bg-blue-50 p-4">
-                  <p className="text-sm font-black text-blue-700">Atau impor dari Excel</p>
-                  <p className="mt-1 text-xs leading-5 text-blue-700/80">
-                    Upload file .csv atau .xlsx dengan kolom: nama, nis, email, kelas
-                  </p>
-                  <button className="mt-3 rounded-lg bg-white px-4 py-2 text-sm font-black text-blue-700 shadow-sm border border-blue-200">Pilih File</button>
+                  {fase === "F" && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setKategori("peminatan");
+                        setMapel("");
+                        setCustomMapel("");
+                      }}
+                      className={`rounded-lg border-2 border-black px-4 py-3 font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition ${
+                        kategori === "peminatan" ? "bg-slate-900 text-white" : "bg-white text-slate-700 hover:bg-slate-100"
+                      }`}
+                    >
+                      Peminatan
+                    </button>
+                  )}
                 </div>
               </div>
-            )}
-          </div>
-        </div>
-      </div>
 
-      {/* Add Class Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setShowAddModal(false)}>
-          <div className="w-full max-w-lg rounded-lg bg-white p-6 shadow-2xl mx-4" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-2xl font-black text-slate-950">Buat Kelas Baru</h3>
-            <form className="mt-5 space-y-4" onSubmit={(e) => { e.preventDefault(); setShowAddModal(false); }}>
-              <label className="block">
-                <span className="text-sm font-black text-slate-700">Nama Kelas</span>
-                <input type="text" placeholder="Contoh: X IPA 1" className="mt-2 h-12 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100" />
-              </label>
-              <label className="block">
-                <span className="text-sm font-black text-slate-700">Mata Pelajaran</span>
-                <select className="mt-2 h-12 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100">
-                  {["Biologi", "Matematika", "Fisika", "Kimia", "Bahasa Indonesia", "Bahasa Inggris", "Sejarah", "Ekonomi"].map((s) => (
-                    <option key={s} value={s}>{s}</option>
+              {kategori === "peminatan" && (
+                <div>
+                  <label className="mb-1 block text-sm font-bold text-slate-700">Kelompok Peminatan</label>
+                  <select
+                    value={peminatan}
+                    onChange={(e) => {
+                      setPeminatan(e.target.value as SpecializationKey);
+                      setMapel("");
+                      setCustomMapel("");
+                    }}
+                    required
+                    className="w-full rounded-lg border-2 border-black p-3 text-sm font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] outline-none"
+                  >
+                    <option value="">Pilih kelompok peminatan</option>
+                    {specializationGroups.map((group) => (
+                      <option key={group.key} value={group.key}>
+                        {group.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <div>
+                <label className="mb-1 block text-sm font-bold text-slate-700">Mata Pelajaran</label>
+                <select
+                  value={mapel}
+                  onChange={(e) => {
+                    setMapel(e.target.value);
+                    if (e.target.value !== "__custom") setCustomMapel("");
+                  }}
+                  disabled={kategori === "peminatan" && !peminatan}
+                  required
+                  className="w-full rounded-lg border-2 border-black p-3 text-sm font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] outline-none disabled:opacity-50"
+                >
+                  <option value="">{kategori === "peminatan" && !peminatan ? "Pilih kelompok peminatan dulu" : "Pilih mata pelajaran"}</option>
+                  {availableMapel.map((item) => (
+                    <option key={item} value={item}>
+                      {item}
+                    </option>
                   ))}
+                  <option value="__custom">Tambah / isi sendiri</option>
                 </select>
-              </label>
+              </div>
+
+              {mapel === "__custom" && (
+                <div>
+                  <label className="mb-1 block text-sm font-bold text-slate-700">Isi Mata Pelajaran</label>
+                  <input
+                    type="text"
+                    value={customMapel}
+                    onChange={(e) => setCustomMapel(e.target.value)}
+                    placeholder="Tulis mata pelajaran atau pengembangan sekolah"
+                    required
+                    className="w-full rounded-lg border-2 border-black p-3 text-sm font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] outline-none"
+                  />
+                </div>
+              )}
+
+              <div>
+                <label className="mb-1 block text-sm font-bold text-slate-700">Deskripsi Singkat</label>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows={3}
+                  placeholder="Opsional: target kelas, tahun ajaran, atau catatan untuk siswa"
+                  className="w-full rounded-lg border-2 border-black p-3 text-sm font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-bold text-slate-700">Kode Kelas Rahasia</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={kodeKelas}
+                    onChange={(e) => setKodeKelas(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8))}
+                    required
+                    minLength={5}
+                    className="flex-1 rounded-lg border-2 border-black bg-slate-50 p-3 text-lg font-black tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setKodeKelas(generateKodeKelas())}
+                    className="rounded-lg border-2 border-black bg-slate-200 px-4 font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition hover:bg-slate-300"
+                  >
+                    Acak
+                  </button>
+                </div>
+                <p className="mt-1 text-xs font-bold text-slate-500">Bagikan kode ini ke siswa agar mereka bisa masuk kelas tanpa bentrok.</p>
+              </div>
+
               <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setShowAddModal(false)} className="flex-1 rounded-lg border border-slate-300 py-3 text-sm font-black text-slate-700">Batal</button>
-                <button type="submit" className="flex-1 rounded-lg bg-emerald-600 py-3 text-sm font-black text-white shadow-lg hover:bg-emerald-700">Buat Kelas</button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    resetForm();
+                    setShowModal(false);
+                  }}
+                  className="flex-1 rounded-lg border-2 border-black bg-white px-4 py-3 font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition hover:bg-slate-100"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="flex-1 rounded-lg border-2 border-black bg-emerald-500 px-4 py-3 font-bold text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition hover:bg-emerald-600 disabled:opacity-60"
+                >
+                  {saving ? "Menyimpan..." : "Simpan Kelas"}
+                </button>
               </div>
             </form>
           </div>
         </div>
       )}
+
+      {selectedClass && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4 backdrop-blur-sm"
+          onClick={() => setSelectedClass(null)}
+        >
+          <div className="w-full max-w-3xl rounded-xl bg-white p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-black uppercase text-emerald-600">Detail Kelas</p>
+                <h3 className="mt-1 text-2xl font-black text-slate-950">{selectedClass.name}</h3>
+                <p className="mt-1 text-sm font-bold text-slate-500">{selectedClass.subject?.name}</p>
+              </div>
+              <button onClick={() => setSelectedClass(null)} className="rounded-lg bg-slate-100 px-3 py-2 text-sm font-black text-slate-700">
+                Tutup
+              </button>
+            </div>
+
+            <div className="mt-5 grid gap-3 sm:grid-cols-4">
+              <Info label="Kode" value={selectedClass.classCode} />
+              <Info label="Fase" value={`Fase ${selectedClass.phase}`} />
+              <Info label="Kelas" value={selectedClass.classLevel || "-"} />
+              <Info label="Kategori" value={selectedClass.category} />
+            </div>
+
+            <div className="mt-5 rounded-lg border border-slate-200">
+              <div className="border-b border-slate-200 px-4 py-3">
+                <p className="font-black text-slate-950">Siswa Terdaftar</p>
+              </div>
+              {selectedClass.enrollments && selectedClass.enrollments.length > 0 ? (
+                <div className="divide-y divide-slate-200">
+                  {selectedClass.enrollments.map((enrollment) => (
+                    <div key={enrollment.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+                      <div>
+                        <p className="font-black text-slate-950">{enrollment.student?.user?.name || "Siswa"}</p>
+                        <p className="text-xs font-bold text-slate-500">{enrollment.student?.user?.email}</p>
+                      </div>
+                      <span className="rounded-lg bg-slate-100 px-3 py-1 text-xs font-black text-slate-700">
+                        {levelLabel(enrollment.pretestLevel)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="px-4 py-6 text-sm font-bold text-slate-500">Belum ada siswa yang bergabung dengan kode kelas ini.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardShell>
+  );
+}
+
+function Info({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg bg-slate-50 p-3">
+      <p className="text-xs font-bold text-slate-500">{label}</p>
+      <p className="mt-1 text-sm font-black text-slate-950">{value}</p>
+    </div>
   );
 }

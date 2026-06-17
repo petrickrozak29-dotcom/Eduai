@@ -1,75 +1,89 @@
 "use client";
 
 import DashboardShell from "@/components/layout/DashboardShell";
-import { useState } from "react";
+
+const statusItems = [
+  { label: "API Server", status: "online" as const },
+  { label: "Database", status: "online" as const },
+  { label: "WebSocket", status: "offline" as const },
+  { label: "Storage Service", status: "online" as const },
+];
+
+function StatusDot({ status }: { status: "online" | "offline" | "warning" }) {
+  const colorMap = {
+    online: "bg-emerald-500",
+    offline: "bg-red-500",
+    warning: "bg-amber-500",
+  };
+  return (
+    <span
+      className={`inline-block h-3 w-3 rounded-full ${colorMap[status]} shadow-[0_0_6px_rgba(0,0,0,0.3)]`}
+    />
+  );
+}
 
 export default function MonitoringSistemPage() {
-  const services = [
-    { name: "API Server", status: "healthy", latency: "45ms", uptime: "99.9%" },
-    { name: "Database", status: "connected", latency: "12ms", uptime: "99.8%" },
-    { name: "AI Service", status: "active", latency: "1.2s", uptime: "98.5%" },
-    { name: "Storage", status: "healthy", latency: "34ms", uptime: "99.9%" },
-    { name: "Email Service", status: "active", latency: "280ms", uptime: "97.2%" },
-    { name: "Redis Cache", status: "connected", latency: "3ms", uptime: "99.9%" },
-  ];
-
-  const [logs] = useState([
-    { time: "15:32:21", action: "Login", user: "Developer EduPath", detail: "Dashboard developer diakses" },
-    { time: "15:28:10", action: "Create", user: "Budi Guru", detail: "Membuat materi baru: Sistem Pernapasan" },
-    { time: "15:22:45", action: "Delete", user: "Developer", detail: "Menghapus quiz: Kuis Bab 2" },
-    { time: "15:18:33", action: "Update", user: "Siti Aisyah", detail: "Memperbarui konten materi Fungsi Kuadrat" },
-    { time: "15:10:12", action: "Register", user: "Ani Putri", detail: "Siswa baru mendaftar" },
-    { time: "14:55:00", action: "Generate AI", user: "Ahmad Rizal", detail: "Generate materi kinestetik Fisika" },
-    { time: "14:30:22", action: "Login", user: "Siswa Demo", detail: "Siswa login ke dashboard" },
-  ]);
-
   return (
     <DashboardShell>
-      <div className="space-y-5">
-        <header className="rounded-lg border border-white/70 bg-white/72 p-5 shadow backdrop-blur-2xl">
-          <p className="text-sm font-black uppercase text-cyan-600">Developer</p>
-          <h2 className="mt-2 text-4xl font-black text-slate-950">Monitoring Sistem ⚡</h2>
-          <p className="mt-2 text-base text-slate-600">Status layanan dan log aktivitas platform.</p>
-        </header>
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-black text-slate-900">Monitoring Sistem</h1>
+          <p className="mt-1 text-sm font-bold text-slate-500">
+            Pantau status dan kesehatan platform EduPath AI secara real-time
+          </p>
+        </div>
 
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {services.map((s) => (
-            <div key={s.name} className="flex items-center justify-between rounded-lg border border-white/70 bg-white p-5 shadow-sm">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {statusItems.map((item) => (
+            <div
+              key={item.label}
+              className="flex items-center gap-4 rounded-xl border-2 border-black bg-white p-5 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]"
+            >
+              <StatusDot status={item.status} />
               <div>
-                <p className="font-black text-slate-950">{s.name}</p>
-                <div className="mt-1 flex items-center gap-3 text-xs font-bold text-slate-500">
-                  <span>{s.latency}</span>
-                  <span>Uptime: {s.uptime}</span>
-                </div>
+                <p className="text-sm font-black text-slate-900">{item.label}</p>
+                <p className="text-xs font-bold uppercase text-slate-400">
+                  {item.status === "online" ? "Online" : "Offline"}
+                </p>
               </div>
-              <span className={`rounded-lg px-3 py-1.5 text-xs font-black ${s.status === "healthy" || s.status === "active" || s.status === "connected" ? "bg-emerald-100 text-emerald-700" : "bg-yellow-100 text-yellow-700"}`}>
-                {s.status}
-              </span>
             </div>
           ))}
         </div>
 
-        <div className="rounded-lg border border-white/70 bg-white/72 p-5 shadow backdrop-blur-2xl">
-          <p className="mb-4 text-sm font-black text-slate-950">Log Aktivitas Terbaru</p>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="border-b border-slate-200 text-xs font-black uppercase text-slate-500">
-                  <th className="pb-3 pr-4">Waktu</th><th className="pb-3 pr-4">Aksi</th><th className="pb-3 pr-4">User</th><th className="pb-3">Detail</th>
-                </tr>
-              </thead>
-              <tbody>
-                {logs.map((log, i) => (
-                  <tr key={i} className="border-b border-slate-100">
-                    <td className="py-3 pr-4 font-mono text-xs text-slate-500">{log.time}</td>
-                    <td className="py-3 pr-4"><span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-black">{log.action}</span></td>
-                    <td className="py-3 pr-4 font-bold text-slate-950">{log.user}</td>
-                    <td className="py-3 text-slate-600">{log.detail}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="rounded-xl border-2 border-black bg-white p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+            <h2 className="text-lg font-black text-slate-900">Pengguna Aktif</h2>
+            <p className="mt-2 text-4xl font-black text-slate-900">0</p>
+            <p className="text-xs font-bold text-slate-400">Saat ini</p>
           </div>
+          <div className="rounded-xl border-2 border-black bg-white p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+            <h2 className="text-lg font-black text-slate-900">Uptime Server</h2>
+            <p className="mt-2 font-black text-slate-900">-- hari -- jam -- menit</p>
+            <p className="text-xs font-bold text-slate-400">Sejak terakhir deploy</p>
+          </div>
+          <div className="rounded-xl border-2 border-black bg-white p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+            <h2 className="text-lg font-black text-slate-900">Response Time</h2>
+            <p className="mt-2 font-black text-slate-900">-- ms</p>
+            <p className="text-xs font-bold text-slate-400">Rata-rata</p>
+          </div>
+        </div>
+
+        <div className="rounded-xl border-2 border-black bg-white p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+          <h2 className="mb-4 text-lg font-black text-slate-900">Real-time Log</h2>
+          <div className="space-y-2">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex items-center gap-3 rounded-lg bg-slate-50 px-4 py-2 text-xs font-bold text-slate-400">
+                <span className="w-16 shrink-0">--:--:--</span>
+                <span className="w-20 shrink-0 rounded bg-slate-200 px-2 py-0.5 text-center uppercase text-slate-500">
+                  INFO
+                </span>
+                <span className="truncate">Menunggu data log real-time...</span>
+              </div>
+            ))}
+          </div>
+          <p className="mt-4 text-center text-xs font-bold text-slate-400">
+            Log akan muncul real-time saat sistem berjalan
+          </p>
         </div>
       </div>
     </DashboardShell>
