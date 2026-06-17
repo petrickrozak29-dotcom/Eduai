@@ -157,6 +157,7 @@ export const me = async (req, res) => {
         sendSuccess(res, user, "Profil berhasil diambil");
     }
     catch (error) {
+        console.error("LOGIN ERROR:", error);
         sendError(res, "Gagal mengambil profil", 500, error.message);
     }
 };
