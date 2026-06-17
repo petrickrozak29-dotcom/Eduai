@@ -21,10 +21,7 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors({
-  origin: [
-    "http://localhost:3000",
-    "https://eduai-2akm-mq6xm3ajq-petrickrozak29-dotcoms-projects.vercel.app"
-  ],
+  origin: true,
   credentials: true,
 }));
 
