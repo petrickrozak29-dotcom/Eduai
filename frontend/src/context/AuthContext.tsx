@@ -67,6 +67,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(async (email: string, password: string) => {
     try {
+      console.log("API_URL =", API_URL);
+      console.log("LOGIN URL =", `${API_URL}/auth/login`);
+
       const res = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -89,7 +92,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { success: true, role: userData.role };
       }
       return { success: false, message: result.message || "Login gagal" };
-    } catch {
+    } catch (error) {
+      console.error("LOGIN ERROR =", error);
       return { success: false, message: "Gagal terhubung ke server. Pastikan backend berjalan." };
     }
   }, []);
