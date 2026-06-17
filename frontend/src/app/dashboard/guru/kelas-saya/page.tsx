@@ -55,19 +55,6 @@ export default function KelasSayaPage() {
     return "Menunggu data kelas dari API real-time. Buat kelas baru untuk memulai.";
   }, [message]);
 
-  const fetchClasses = async () => {
-    setLoading(true);
-    const result = await api.get<ApiClass[]>("/classes/my-classes");
-    if (result.success && Array.isArray(result.data)) {
-      setKelasList(result.data);
-      setMessage("");
-    } else {
-      setKelasList([]);
-      setMessage(result.message || "Data kelas belum tersedia dari server.");
-    }
-    setLoading(false);
-  };
-
   useEffect(() => {
     let active = true;
     api.get<ApiClass[]>("/classes/my-classes").then((result) => {

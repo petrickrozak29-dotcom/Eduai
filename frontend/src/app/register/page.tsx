@@ -4,9 +4,25 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { LogoMark } from "@/components/ui/LogoMark";
-import { useState, type FormEvent, type SVGProps } from "react";
+import { Suspense, useState, type FormEvent, type SVGProps } from "react";
 
 export default function RegisterPage() {
+  return (
+    <Suspense fallback={<RegisterShellFallback />}>
+      <RegisterContent />
+    </Suspense>
+  );
+}
+
+function RegisterShellFallback() {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-slate-50">
+      <p className="text-sm font-bold text-slate-500">Memuat halaman registrasi...</p>
+    </main>
+  );
+}
+
+function RegisterContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialRole = searchParams.get("role") === "guru" ? "GURU" : "SISWA";

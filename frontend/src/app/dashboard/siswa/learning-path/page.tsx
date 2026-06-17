@@ -26,19 +26,6 @@ export default function KelasSayaPage() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
 
-  const fetchClasses = async () => {
-    setLoading(true);
-    const result = await api.get<ApiClassEnrollment[]>("/classes/student-classes");
-    if (result.success && Array.isArray(result.data)) {
-      setJoinedClasses(result.data);
-      setMessage("");
-    } else {
-      setJoinedClasses([]);
-      setMessage(result.message || "Data kelas belum tersedia dari server.");
-    }
-    setLoading(false);
-  };
-
   useEffect(() => {
     let active = true;
     api.get<ApiClassEnrollment[]>("/classes/student-classes").then((result) => {
