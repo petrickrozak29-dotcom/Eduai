@@ -13,6 +13,16 @@
     "db:seed": "cd backend && npx ts-node --esm src/seed.ts",
     "setup": "npm run install:all && npm run db:setup"
   },
-  "keywords": ["edupath", "ai", "pembelajaran", "adaptif", "sma"],
-  "license": "ISC"
+  "keywords": [
+    "edupath",
+    "ai",
+    "pembelajaran",
+    "adaptif",
+    "sma"
+  ],
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^6.16.2",
+    "prisma": "^6.16.2"
+  }
 }
