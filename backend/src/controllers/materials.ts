@@ -16,7 +16,12 @@ export const materialController = {
         where,
         include: {
           subject: {
-            select: { id: true, name: true, kelas: true },
+            select: {
+              id: true,
+              name: true,
+              kelas: true,
+              teacher: { select: { user: { select: { name: true } } } },
+            },
           },
           chapter: {
             select: { id: true, title: true, order: true },
@@ -39,7 +44,12 @@ export const materialController = {
         where: { id },
         include: {
           subject: {
-            select: { id: true, name: true, kelas: true },
+            select: {
+              id: true,
+              name: true,
+              kelas: true,
+              teacher: { select: { user: { select: { name: true } } } },
+            },
           },
           chapter: {
             select: { id: true, title: true, order: true },

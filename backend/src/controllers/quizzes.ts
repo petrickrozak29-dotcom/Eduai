@@ -15,6 +15,14 @@ export const getAll = async (req: AuthRequestType, res: Response): Promise<void>
     const quizzes = await prisma.quiz.findMany({
       where,
       include: {
+        subject: {
+          select: {
+            id: true,
+            name: true,
+            teacher: { select: { user: { select: { name: true } } } },
+          },
+        },
+        chapter: { select: { id: true, title: true } },
         _count: {
           select: { questions: true },
         },

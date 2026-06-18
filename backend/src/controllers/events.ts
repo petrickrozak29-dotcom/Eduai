@@ -61,6 +61,11 @@ export const create = async (req: AuthRequestType, res: Response): Promise<void>
         description: description || null,
         date: new Date(date),
         type: type || "academic",
+        category: req.body.category || type || "academic",
+        penyelenggara: req.body.penyelenggara || null,
+        photoUrl: req.body.photoUrl || null,
+        link: req.body.link || null,
+        kelasId: req.body.kelasId || null,
         userId: req.user.userId,
       },
       include: { user: { select: { name: true, role: true } } },
@@ -74,12 +79,17 @@ export const create = async (req: AuthRequestType, res: Response): Promise<void>
 
 export const update = async (req: AuthRequestType, res: Response): Promise<void> => {
   try {
-    const { title, description, date, type } = req.body;
+    const { title, description, date, type, category, penyelenggara, photoUrl, link, kelasId } = req.body;
     const id = String(req.params.id);
     const existing = await prisma.event.findUnique({ where: { id } });
 
     if (!existing) {
       sendError(res, "Event tidak ditemukan", 404);
+      return;
+    }
+
+    if (req.user?.role !== "DEVELOPER" && existing.userId !== req.user?.userId) {
+      sendError(res, "Tidak memiliki akses mengubah event ini", 403);
       return;
     }
 
@@ -90,6 +100,11 @@ export const update = async (req: AuthRequestType, res: Response): Promise<void>
         ...(description !== undefined && { description }),
         ...(date !== undefined && { date: new Date(date) }),
         ...(type !== undefined && { type }),
+        ...(category !== undefined && { category }),
+        ...(penyelenggara !== undefined && { penyelenggara }),
+        ...(photoUrl !== undefined && { photoUrl }),
+        ...(link !== undefined && { link }),
+        ...(kelasId !== undefined && { kelasId: kelasId || null }),
       },
     });
 
@@ -106,6 +121,11 @@ export const remove = async (req: AuthRequestType, res: Response): Promise<void>
 
     if (!existing) {
       sendError(res, "Event tidak ditemukan", 404);
+      return;
+    }
+
+    if (req.user?.role !== "DEVELOPER" && existing.userId !== req.user?.userId) {
+      sendError(res, "Tidak memiliki akses menghapus event ini", 403);
       return;
     }
 

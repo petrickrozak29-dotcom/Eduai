@@ -94,7 +94,76 @@ export interface ApiUser {
   nip?: string | null;
   nis?: string | null;
   createdAt?: string;
-  teacher?: { mataPelajaran?: string | null } | null;
+  teacher?: { id?: string; mataPelajaran?: string | null } | null;
+  student?: { id?: string; kelas?: string | null } | null;
+  developer?: { id?: string } | null;
+}
+
+export interface ApiMaterial {
+  id: string;
+  title: string;
+  content?: string;
+  contentType?: string;
+  isPublished?: boolean;
+  subjectId?: string;
+  subject?: { id: string; name: string; kelas?: string | null; teacher?: { user?: { name: string } } | null };
+  chapter?: { id: string; title: string; order?: number } | null;
+  createdAt?: string;
+}
+
+export interface ApiQuiz {
+  id: string;
+  title: string;
+  type?: string;
+  subjectId?: string;
+  subject?: { id: string; name: string; teacher?: { user?: { name: string } } | null };
+  _count?: { questions?: number };
+  questions?: Array<{ id?: string; text: string; options?: Record<string, string>; correctAnswer?: string; points?: number }>;
+  createdAt?: string;
+}
+
+export interface ApiForum {
+  id: string;
+  title: string;
+  content: string;
+  createdAt?: string;
+  updatedAt?: string;
+  user?: { id: string; name: string; role: string; avatar?: string | null };
+  subject?: { id: string; name: string } | null;
+  _count?: { replies?: number };
+}
+
+export interface ApiEvent {
+  id: string;
+  title: string;
+  description?: string | null;
+  date: string;
+  type?: string;
+  category?: string | null;
+  penyelenggara?: string | null;
+  photoUrl?: string | null;
+  link?: string | null;
+  user?: { id: string; name: string; role: string };
+}
+
+export interface AnalyticsOverviewData {
+  totals: {
+    guru: number;
+    siswa: number;
+    mataPelajaran: number;
+    kelas: number;
+    materi: number;
+    kuis: number;
+  };
+  aiUsage: {
+    generatedMaterials: number;
+    generatedQuizzes: number;
+    assistantSessions: number;
+  };
+  learningAnalytics: {
+    averageLearningIndex: number;
+    recentResults: Array<unknown>;
+  };
 }
 
 export interface DeveloperDashboardData {
@@ -122,6 +191,12 @@ export interface DeveloperDashboardData {
     dailyActivity: number;
   };
   recentUsers?: ApiUser[];
+  logs?: Array<{
+    id: string;
+    action: string;
+    createdAt: string;
+    user?: { name: string; role: string } | null;
+  }>;
 }
 
 // Student type

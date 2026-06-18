@@ -112,4 +112,72 @@ export const reply = async (req: AuthRequestType, res: Response): Promise<void> 
   }
 };
 
-export default { getAll, getById, create, reply };
+export const update = async (req: AuthRequestType, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      sendError(res, "Unauthorized", 401);
+      return;
+    }
+
+    const id = String(req.params.id);
+    const { title, content, subjectId } = req.body;
+    const existing = await prisma.forum.findUnique({ where: { id } });
+
+    if (!existing) {
+      sendError(res, "Forum tidak ditemukan", 404);
+      return;
+    }
+
+    if (req.user.role !== "DEVELOPER" && existing.userId !== req.user.userId) {
+      sendError(res, "Tidak memiliki akses mengubah forum ini", 403);
+      return;
+    }
+
+    const forum = await prisma.forum.update({
+      where: { id },
+      data: {
+        ...(title !== undefined && { title }),
+        ...(content !== undefined && { content }),
+        ...(subjectId !== undefined && { subjectId: subjectId || null }),
+      },
+      include: {
+        user: { select: { id: true, name: true, role: true, avatar: true } },
+        subject: { select: { id: true, name: true } },
+        _count: { select: { replies: true } },
+      },
+    });
+
+    sendSuccess(res, forum, "Forum berhasil diperbarui");
+  } catch (error) {
+    sendError(res, "Gagal memperbarui forum", 500, (error as Error).message);
+  }
+};
+
+export const remove = async (req: AuthRequestType, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      sendError(res, "Unauthorized", 401);
+      return;
+    }
+
+    const id = String(req.params.id);
+    const existing = await prisma.forum.findUnique({ where: { id } });
+
+    if (!existing) {
+      sendError(res, "Forum tidak ditemukan", 404);
+      return;
+    }
+
+    if (req.user.role !== "DEVELOPER" && existing.userId !== req.user.userId) {
+      sendError(res, "Tidak memiliki akses menghapus forum ini", 403);
+      return;
+    }
+
+    await prisma.forum.delete({ where: { id } });
+    sendSuccess(res, null, "Forum berhasil dihapus");
+  } catch (error) {
+    sendError(res, "Gagal menghapus forum", 500, (error as Error).message);
+  }
+};
+
+export default { getAll, getById, create, reply, update, remove };
