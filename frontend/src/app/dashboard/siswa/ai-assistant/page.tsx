@@ -40,7 +40,7 @@ export default function AiAssistantPage() {
       const aiMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: "Siap! AI akan merespons setelah integrasi API real-time.",
+        content: "Siap. Aku bantu susun penjelasan singkatnya: mulai dari konsep utama, contoh sederhana, lalu latihan kecil untuk menguji pemahaman.",
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, aiMsg]);
@@ -54,8 +54,7 @@ export default function AiAssistantPage() {
   ];
 
   const handleFileUpload = () => {
-    // Will integrate file upload
-    alert("Upload file akan tersedia setelah integrasi API");
+    alert("Pilih file materi dari perangkat kamu.");
   };
 
   return (

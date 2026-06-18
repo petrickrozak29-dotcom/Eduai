@@ -56,7 +56,7 @@ export default function PengaturanSiswaPage() {
                 type="text"
                 value={form.kelas}
                 onChange={(e) => setForm({ ...form, kelas: e.target.value })}
-                placeholder="Akan mengikuti data kelas dari API"
+                placeholder="Akan mengikuti kelas yang kamu ikuti"
                 className="mt-2 h-12 w-full rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold outline-none focus:border-red-500 focus:ring-4 focus:ring-red-100"
               />
             </label>

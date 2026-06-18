@@ -26,7 +26,7 @@ export default function AnalitikKelasPage() {
           <p className="text-sm font-black uppercase text-indigo-600">Analitik</p>
           <h2 className="mt-2 text-4xl font-black text-slate-950 sm:text-5xl">Analitik Kelas</h2>
           <p className="mt-4 max-w-3xl text-base leading-8 text-slate-600">
-            Pantau performa kelas secara real-time, Learning Index, tingkat penyelesaian, dan aktivitas siswa.
+            Pantau performa kelas, Learning Index, tingkat penyelesaian, dan aktivitas siswa.
           </p>
         </header>
 
@@ -35,7 +35,7 @@ export default function AnalitikKelasPage() {
             <p className="text-5xl font-black text-slate-300">0</p>
             <h3 className="mt-4 text-2xl font-black text-slate-950">Belum Ada Data Analitik</h3>
             <p className="mt-2 text-sm font-bold text-slate-500">
-              Data akan muncul setelah kelas, siswa, pretest, materi, dan quiz masuk dari API real-time.
+              Data akan muncul setelah kelas memiliki siswa, pretest, materi, dan quiz.
             </p>
           </div>
         ) : (
@@ -106,7 +106,7 @@ export default function AnalitikKelasPage() {
               <div className="rounded-lg border border-white/70 bg-slate-950 p-5 text-white shadow">
                 <p className="text-xs font-black uppercase text-yellow-300">Rekomendasi</p>
                 <p className="mt-3 text-sm font-bold leading-6 text-slate-300">
-                  Rekomendasi akan dibuat setelah data siswa, pretest, quiz per bab, dan kuis akhir tersedia dari API.
+                  Rekomendasi akan dibuat setelah data siswa, pretest, quiz per bab, dan kuis akhir tersedia.
                 </p>
               </div>
             </div>

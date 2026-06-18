@@ -52,7 +52,7 @@ export default function KelasSayaPage() {
 
   const emptyText = useMemo(() => {
     if (message) return message;
-    return "Menunggu data kelas dari API real-time. Buat kelas baru untuk memulai.";
+    return "Belum ada kelas. Buat kelas baru untuk memulai.";
   }, [message]);
 
   useEffect(() => {
@@ -64,7 +64,7 @@ export default function KelasSayaPage() {
         setMessage("");
       } else {
         setKelasList([]);
-        setMessage(result.message || "Data kelas belum tersedia dari server.");
+        setMessage(result.message || "Data kelas belum tersedia.");
       }
       setLoading(false);
     });
@@ -119,7 +119,7 @@ export default function KelasSayaPage() {
       setShowModal(false);
       setMessage("Kelas berhasil dibuat dan siap dipakai siswa dengan kode rahasia.");
     } else {
-      setMessage(result.message || "Gagal membuat kelas. Periksa koneksi server.");
+      setMessage(result.message || "Gagal membuat kelas. Silakan coba lagi.");
     }
     setSaving(false);
   };
@@ -143,7 +143,7 @@ export default function KelasSayaPage() {
         </div>
 
         <p className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm font-bold text-amber-800 shadow-sm">
-          {loading ? "Memuat kelas dari server..." : emptyText}
+          {loading ? "Memuat kelas..." : emptyText}
         </p>
 
         {!loading && kelasList.length === 0 ? (
@@ -151,7 +151,7 @@ export default function KelasSayaPage() {
             <p className="text-5xl font-black text-slate-300">0</p>
             <h2 className="mt-4 text-2xl font-black text-slate-900">Belum Ada Kelas</h2>
             <p className="mt-2 text-sm font-bold text-slate-500">
-              Data sengaja kosong sampai kelas dibuat dan tersimpan ke API.
+              Buat kelas baru untuk mendapatkan kode kelas.
             </p>
             <button
               onClick={() => setShowModal(true)}
@@ -211,11 +211,11 @@ export default function KelasSayaPage() {
           onClick={() => setShowModal(false)}
         >
           <div
-            className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-xl border-2 border-black bg-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
+            className="max-h-[88vh] w-full max-w-2xl overflow-y-auto rounded-xl border-2 border-black bg-white p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] sm:p-5"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-2xl font-black text-slate-900">Buat Kelas Baru</h3>
-            <form onSubmit={handleSubmit} className="mt-5 space-y-5">
+            <h3 className="text-xl font-black text-slate-900">Buat Kelas Baru</h3>
+            <form onSubmit={handleSubmit} className="mt-4 space-y-3">
               <div>
                 <label className="mb-1 block text-sm font-bold text-slate-700">Nama Kelas</label>
                 <input
@@ -224,7 +224,7 @@ export default function KelasSayaPage() {
                   onChange={(e) => setNamaKelas(e.target.value)}
                   placeholder="Contoh: Biologi Fase E 2026"
                   required
-                  className="w-full rounded-lg border-2 border-black p-3 text-sm font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] outline-none"
+                  className="w-full rounded-lg border-2 border-black px-3 py-2.5 text-sm font-bold shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] outline-none"
                 />
               </div>
 
@@ -236,7 +236,7 @@ export default function KelasSayaPage() {
                       key={item}
                       type="button"
                       onClick={() => handleFaseChange(item)}
-                      className={`rounded-lg border-2 border-black px-4 py-3 font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition ${
+                      className={`rounded-lg border-2 border-black px-4 py-2.5 text-sm font-bold shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition ${
                         fase === item ? "bg-slate-900 text-white" : "bg-white text-slate-700 hover:bg-slate-100"
                       }`}
                     >
@@ -255,7 +255,7 @@ export default function KelasSayaPage() {
                         key={item}
                         type="button"
                         onClick={() => setFaseFKelas(item)}
-                        className={`rounded-lg border-2 border-black px-4 py-3 font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition ${
+                        className={`rounded-lg border-2 border-black px-4 py-2.5 text-sm font-bold shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition ${
                           faseFKelas === item ? "bg-slate-900 text-white" : "bg-white text-slate-700 hover:bg-slate-100"
                         }`}
                       >
@@ -277,7 +277,7 @@ export default function KelasSayaPage() {
                       setMapel("");
                       setCustomMapel("");
                     }}
-                    className={`rounded-lg border-2 border-black px-4 py-3 font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition ${
+                    className={`rounded-lg border-2 border-black px-4 py-2.5 text-sm font-bold shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition ${
                       kategori === "umum" ? "bg-slate-900 text-white" : "bg-white text-slate-700 hover:bg-slate-100"
                     }`}
                   >
@@ -291,7 +291,7 @@ export default function KelasSayaPage() {
                         setMapel("");
                         setCustomMapel("");
                       }}
-                      className={`rounded-lg border-2 border-black px-4 py-3 font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition ${
+                      className={`rounded-lg border-2 border-black px-4 py-2.5 text-sm font-bold shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition ${
                         kategori === "peminatan" ? "bg-slate-900 text-white" : "bg-white text-slate-700 hover:bg-slate-100"
                       }`}
                     >
@@ -312,7 +312,7 @@ export default function KelasSayaPage() {
                       setCustomMapel("");
                     }}
                     required
-                    className="w-full rounded-lg border-2 border-black p-3 text-sm font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] outline-none"
+                    className="w-full rounded-lg border-2 border-black px-3 py-2.5 text-sm font-bold shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] outline-none"
                   >
                     <option value="">Pilih kelompok peminatan</option>
                     {specializationGroups.map((group) => (
@@ -334,7 +334,7 @@ export default function KelasSayaPage() {
                   }}
                   disabled={kategori === "peminatan" && !peminatan}
                   required
-                  className="w-full rounded-lg border-2 border-black p-3 text-sm font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] outline-none disabled:opacity-50"
+                  className="w-full rounded-lg border-2 border-black px-3 py-2.5 text-sm font-bold shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] outline-none disabled:opacity-50"
                 >
                   <option value="">{kategori === "peminatan" && !peminatan ? "Pilih kelompok peminatan dulu" : "Pilih mata pelajaran"}</option>
                   {availableMapel.map((item) => (
@@ -355,7 +355,7 @@ export default function KelasSayaPage() {
                     onChange={(e) => setCustomMapel(e.target.value)}
                     placeholder="Tulis mata pelajaran atau pengembangan sekolah"
                     required
-                    className="w-full rounded-lg border-2 border-black p-3 text-sm font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] outline-none"
+                    className="w-full rounded-lg border-2 border-black px-3 py-2.5 text-sm font-bold shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] outline-none"
                   />
                 </div>
               )}
@@ -367,7 +367,7 @@ export default function KelasSayaPage() {
                   onChange={(e) => setDescription(e.target.value)}
                   rows={3}
                   placeholder="Opsional: target kelas, tahun ajaran, atau catatan untuk siswa"
-                  className="w-full rounded-lg border-2 border-black p-3 text-sm font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] outline-none"
+                  className="w-full rounded-lg border-2 border-black px-3 py-2.5 text-sm font-bold shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] outline-none"
                 />
               </div>
 
@@ -380,12 +380,12 @@ export default function KelasSayaPage() {
                     onChange={(e) => setKodeKelas(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8))}
                     required
                     minLength={5}
-                    className="flex-1 rounded-lg border-2 border-black bg-slate-50 p-3 text-lg font-black tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] outline-none"
+                    className="flex-1 rounded-lg border-2 border-black bg-slate-50 px-3 py-2.5 text-base font-black tracking-widest shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] outline-none"
                   />
                   <button
                     type="button"
                     onClick={() => setKodeKelas(generateKodeKelas())}
-                    className="rounded-lg border-2 border-black bg-slate-200 px-4 font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition hover:bg-slate-300"
+                    className="rounded-lg border-2 border-black bg-slate-200 px-4 text-sm font-bold shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition hover:bg-slate-300"
                   >
                     Acak
                   </button>
@@ -400,14 +400,14 @@ export default function KelasSayaPage() {
                     resetForm();
                     setShowModal(false);
                   }}
-                  className="flex-1 rounded-lg border-2 border-black bg-white px-4 py-3 font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition hover:bg-slate-100"
+                  className="flex-1 rounded-lg border-2 border-black bg-white px-4 py-2.5 font-bold shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition hover:bg-slate-100"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 rounded-lg border-2 border-black bg-emerald-500 px-4 py-3 font-bold text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition hover:bg-emerald-600 disabled:opacity-60"
+                  className="flex-1 rounded-lg border-2 border-black bg-emerald-500 px-4 py-2.5 font-bold text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition hover:bg-emerald-600 disabled:opacity-60"
                 >
                   {saving ? "Menyimpan..." : "Simpan Kelas"}
                 </button>

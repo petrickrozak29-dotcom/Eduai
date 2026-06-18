@@ -137,7 +137,8 @@ export const login = async (req, res) => {
         sendSuccess(res, { user: safeUser, token }, "Login berhasil");
     }
     catch (error) {
-        sendError(res, "Gagal melakukan login", 500, error.message);
+        console.error("LOGIN ERROR:", error);
+        sendError(res, "Gagal melakukan login", 500, error instanceof Error ? error.message : String(error));
     }
 };
 export const me = async (req, res) => {
@@ -157,7 +158,6 @@ export const me = async (req, res) => {
         sendSuccess(res, user, "Profil berhasil diambil");
     }
     catch (error) {
-        console.error("LOGIN ERROR:", error);
         sendError(res, "Gagal mengambil profil", 500, error.message);
     }
 };

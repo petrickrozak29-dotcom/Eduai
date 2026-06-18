@@ -5,8 +5,9 @@ import { sendError, sendSuccess } from "../utils/response.js";
 
 export const dashboard = async (_req: AuthRequestType, res: Response): Promise<void> => {
   try {
-    const [usersByRole, totalSubjects, totalMaterials, totalQuizzes, logs] = await Promise.all([
+    const [usersByRole, totalClasses, totalSubjects, totalMaterials, totalQuizzes, logs, recentUsers] = await Promise.all([
       prisma.user.groupBy({ by: ["role"], _count: { role: true } }),
+      prisma.kelas.count(),
       prisma.subject.count(),
       prisma.material.count(),
       prisma.quiz.count(),
@@ -15,13 +16,41 @@ export const dashboard = async (_req: AuthRequestType, res: Response): Promise<v
         orderBy: { createdAt: "desc" },
         include: { user: { select: { name: true, role: true } } },
       }),
+      prisma.user.findMany({
+        take: 8,
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+          nip: true,
+          nis: true,
+          kelas: true,
+          createdAt: true,
+          teacher: { select: { mataPelajaran: true } },
+        },
+      }),
     ]);
+
+    const roleCount = (role: "GURU" | "SISWA" | "DEVELOPER") =>
+      usersByRole.find((item) => item.role === role)?._count.role ?? 0;
 
     sendSuccess(
       res,
       {
         usersByRole,
+        totals: {
+          guru: roleCount("GURU"),
+          siswa: roleCount("SISWA"),
+          developer: roleCount("DEVELOPER"),
+          classes: totalClasses,
+          subjects: totalSubjects,
+          materials: totalMaterials,
+          quizzes: totalQuizzes,
+        },
         platform: {
+          totalClasses,
           totalSubjects,
           totalMaterials,
           totalQuizzes,
@@ -34,6 +63,7 @@ export const dashboard = async (_req: AuthRequestType, res: Response): Promise<v
           dailyActivity: totalMaterials * 2 + totalQuizzes,
         },
         logs,
+        recentUsers,
       },
       "Dashboard developer berhasil diambil"
     );
@@ -54,6 +84,7 @@ export const users = async (_req: AuthRequestType, res: Response): Promise<void>
         nip: true,
         nis: true,
         createdAt: true,
+        teacher: { select: { mataPelajaran: true } },
       },
       orderBy: { createdAt: "desc" },
       take: 100,
@@ -66,4 +97,3 @@ export const users = async (_req: AuthRequestType, res: Response): Promise<void>
 };
 
 export default { dashboard, users };
-

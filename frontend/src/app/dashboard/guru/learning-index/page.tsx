@@ -18,7 +18,7 @@ export default function GuruLearningIndexPage() {
         <header className="rounded-lg border border-white/70 bg-white/72 p-5 shadow backdrop-blur-2xl">
           <p className="text-sm font-black uppercase text-cyan-600">Learning Index</p>
           <h2 className="mt-2 text-4xl font-black text-slate-950 sm:text-5xl">Learning Index 📈</h2>
-          <p className="mt-4 max-w-3xl text-base leading-8 text-slate-600">Data akan muncul setelah integrasi API real-time. Belum ada data tersedia.</p>
+          <p className="mt-4 max-w-3xl text-base leading-8 text-slate-600">Data akan muncul setelah siswa mulai belajar dan mengerjakan quiz.</p>
         </header>
 
         {!hasClasses && (

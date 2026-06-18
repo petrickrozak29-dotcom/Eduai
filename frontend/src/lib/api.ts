@@ -85,6 +85,45 @@ export interface ApiClassEnrollment {
   kelas: ApiClass;
 }
 
+export interface ApiUser {
+  id: string;
+  email: string;
+  name: string;
+  role: "SISWA" | "GURU" | "DEVELOPER";
+  kelas?: string | null;
+  nip?: string | null;
+  nis?: string | null;
+  createdAt?: string;
+  teacher?: { mataPelajaran?: string | null } | null;
+}
+
+export interface DeveloperDashboardData {
+  usersByRole: Array<{ role: "SISWA" | "GURU" | "DEVELOPER"; _count: { role: number } }>;
+  totals?: {
+    guru: number;
+    siswa: number;
+    developer: number;
+    classes: number;
+    subjects: number;
+    materials: number;
+    quizzes: number;
+  };
+  platform: {
+    totalClasses?: number;
+    totalSubjects: number;
+    totalMaterials: number;
+    totalQuizzes: number;
+    uptime: string;
+    aiQueue: string;
+  };
+  monitoring: {
+    apiStatus: string;
+    aiUsage: number;
+    dailyActivity: number;
+  };
+  recentUsers?: ApiUser[];
+}
+
 // Student type
 export interface MockStudent {
   id: string; name: string; nis: string; kelas: string; email: string;

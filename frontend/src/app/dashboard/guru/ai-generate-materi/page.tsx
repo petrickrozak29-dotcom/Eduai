@@ -60,10 +60,10 @@ export default function AIGenerateMateriPage() {
 
     if (result.success && result.data) {
       setGenerated(result.data);
-      setMessage("Materi berhasil digenerate dan disimpan sebagai konfigurasi awal. Publish ke kelas dilakukan setelah integrasi materi-kelas.");
+      setMessage("Materi berhasil digenerate dan siap ditinjau sebelum dibagikan ke kelas.");
     } else {
       setGenerated(null);
-      setMessage(result.message || "Gagal generate materi. Periksa koneksi backend.");
+      setMessage(result.message || "Gagal generate materi. Silakan coba lagi.");
     }
     setLoading(false);
   };

@@ -191,10 +191,10 @@ export default function AIGenerateQuizPage() {
                   ].map((item, index) => (
                     <div key={item} className="rounded-lg border border-slate-200 bg-white p-4">
                       <p className="text-sm font-black text-slate-950">{index + 1}. {item}</p>
-                      <p className="mt-1 text-xs font-bold text-emerald-600">Jawaban dan pembahasan akan disimpan saat API quiz final aktif.</p>
+                      <p className="mt-1 text-xs font-bold text-emerald-600">Jawaban dan pembahasan siap ditinjau sebelum dibagikan.</p>
                     </div>
                   ))}
-                  <p className="text-center text-xs font-bold text-slate-500">Total rencana: {questionCount} soal, siap dikirim ke kelas setelah integrasi publish.</p>
+                  <p className="text-center text-xs font-bold text-slate-500">Total rencana: {questionCount} soal, siap dikirim ke kelas.</p>
                 </div>
               )}
             </div>

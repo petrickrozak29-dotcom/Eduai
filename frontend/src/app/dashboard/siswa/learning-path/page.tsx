@@ -35,7 +35,7 @@ export default function KelasSayaPage() {
         setMessage("");
       } else {
         setJoinedClasses([]);
-        setMessage(result.message || "Data kelas belum tersedia dari server.");
+        setMessage(result.message || "Data kelas belum tersedia.");
       }
       setLoading(false);
     });
@@ -103,7 +103,7 @@ export default function KelasSayaPage() {
         </motion.div>
 
         <p className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm font-bold text-amber-800">
-          {loading ? "Memuat kelas dari server..." : message || "Semua data kelas, materi, pretest, quiz, dan progress akan mengikuti API real-time."}
+          {loading ? "Memuat kelas..." : message || "Gabung kelas untuk mulai belajar."}
         </p>
 
         {!loading && joinedClasses.length === 0 && (
